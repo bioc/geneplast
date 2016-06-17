@@ -1,0 +1,42 @@
+##Class OGP
+setClass(
+  "OGP",
+  representation(
+    cogids="data.frame",
+    sspids="data.frame",
+    orthodist="matrix",
+    abundance="numeric",
+    diversity="numeric",
+    plasticity="numeric",
+    status="character"
+  ),
+  prototype=list(
+    cogids=data.frame(),
+    sspids=data.frame(),
+    orthodist=matrix(),
+    abundance=numeric(),
+    diversity=numeric(),
+    plasticity=numeric(),
+    status=character()
+  )
+)
+##Class OGR
+setClass(
+  "OGR",
+  representation(
+    cogids="data.frame",
+    tree="phylo",
+    spbranches="data.frame",
+    orthoroot="data.frame",
+    orthoct="data.frame",
+    status="character"
+  ),
+  prototype=list(
+    cogids=data.frame(),
+    tree=setClass("phylo"),
+    spbranches=data.frame(),
+    orthoct=data.frame(),
+    orthoroot=data.frame(),
+    status=character()
+  )
+)

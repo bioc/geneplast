@@ -1,0 +1,231 @@
+%\VignetteIndexEntry{Geneplast main vignette}
+%\VignettePackage{geneplast}
+%\VignetteEngine{utils::Sweave}
+
+\documentclass{article}
+
+<<style, eval=TRUE, echo=FALSE, results=tex>>=
+BiocStyle::latex()
+@ 
+
+\newcommand{\exitem}[3]{%
+  \item \texttt{\textbackslash#1\{#2\}} #3 \csname#1\endcsname{#2}.%
+}
+
+\usepackage{hyperref} 
+
+%\bioctitle[Short title for headers]{Full title for title page}
+
+\bioctitle[Geneplast: evolutionary rooting and plasticity inference]{Geneplast: \R{}/\Bioconductor{} package for evolutionary rooting and plasticity inference based on distribution of orthologous groups.}
+
+\author{Rodrigo JS Dalmolin\footnote{rodrigo.dalmolin@imt.ufrn.br}, Mauro AA Castro\footnote{mauro.castro@ufpr.br}}
+
+\begin{document}
+
+\SweaveOpts{concordance=TRUE}
+
+\maketitle
+
+\tableofcontents
+
+\section{Overview}
+
+\Biocpkg{Geneplast} is designed for evolutionary and plasticity analysis based on the distribuion of orthologous groups in a given species tree. It uses Shannon information theory to estimate the Evolutionary Plasticity Index (\textit{EPI}) \cite{Dalmolin2011,Castro2008}. \\
+
+\textbf{Figure \ref{fig1}} shows a toy example to illustrate the analysis. The observed itens in \textbf{Figure \ref{fig1}a} are distributed evenly among the different species (\textit{i.e.} high diversity), while \textbf{Figure \ref{fig1}b} shows the opposite case. The diversity is given by the normalized Shannon's diversity and represents the distribution of orthologous and paralogous genes in a set of species. High diversity represents an homogeneous distribution among the evaluated species, while low diversity indicates that few species concentrate most of the observed orthologous genes.\\
+
+The \textit{EPI} characterizes the evolutionary history of a given orthologous group (OG). It accesses the distribution of orthologs and paralogs and is defined as, 
+
+\begin {equation}
+EPI=1-\frac{H\alpha}{\sqrt{D\alpha}} ,
+\end{equation}
+
+where \textit{D}$\alpha$ represents the OG abundance and \textit{H}$\alpha$ the OG diversity. Low values of \textit{D}$\alpha$ combined with high values for \textit{H}$\alpha$ indicates an orthologous group of low plasticity, that is, few OG members distributed over many species. It also indicates that the OG might have experienced few modifications (\textit{i.e.} duplication and deletion episodes) during the evolution. Note that 0 $\leq$ \textit{H}$\alpha$ $\leq$ 1 and \textit{D}$\alpha$ $\geq$ 1. As a result, 0 $\leq$ \textit{EPI} $\leq$ 1. For further information about the \textit{EPI}, please see \cite{Dalmolin2011}. \\
+
+
+%%%%%%
+%Fig1%
+%%%%%%
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.8\textwidth]{Fig1.pdf}
+\end{center}
+\caption{Toy examples showing the distribution of orthologous and paralogous genes in a given species tree. (\textbf{a}) OG of low abundance (D$\alpha$), high diversity (H$\alpha$) and consequently low plasticity (\textit{EPI}). In this hypothetical case, the OG comprises orthologous genes observed in all species, without apparent deletion or duplication episodes. (\textbf{b}) in this example the OG is observed in many species, but not all, with many paralogs in some of them. Green numbers represents the number of orthologous genes in each species.}
+\label{fig1}
+\end{figure}
+
+
+\newpage
+
+
+\Rpackage{Geneplast} also implements a new algorithm called \textit{Bridge} in order to interrogate the evolutionary root of a given gene based on the distribution of its orthologs. The \textit{Bridge} algorithm assesses the probability that an ortholog of a given gene is present in each last common ancestor (LCA) of a given species (in a given species tree). As a result, this approach infers the evolutionary root representing the gene emergence. The method is designed to deal with large scale queries in order to interrogate, for example, all genes annotated in a network (please refer to \cite{Castro2008} for a case study illustrating the advantages of using this approach).
+
+To illustrate the rooting inference consider the evolutionary scenarios presented in \textbf{Figure \ref{fig2}} for the same hypothetical OGs. These OGs comprise a number of orthologous genes distributed among 13 species, and the pattern of presence or absence is indicated by green and grey colours, respectively. Observe that at least one ortholog is present in all extant species in \textbf{Figure \ref{fig2}a}. To explain this common genetic trait, one possible evolutionary scenario could assume that the ortholog was present in the LCA of all species and was genetically transmitted up to the descendants. For this case, the evolutionary root might be placed at the bottom of the species tree (\textit{i.e.} node \textit{g}). The same reasoning can be done in \textbf{Figure \ref{fig2}b}, but with the evolutionary root placed at node \textit{d}. The \Rpackage{Geneplast} rooting pipeline is designed to infer the most consistent rooting scenario for the observed orthologs in a given species tree. The pipeline provides a consistency score called \textit{Dscore} which estimates the stability of the inferred root, as well as an associated empirical p-value computed by permutation analysis.
+
+%%%%%%
+%Fig2%
+%%%%%%
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.8\textwidth]{Fig2.pdf}
+\end{center}
+\caption{Possible evolutionary rooting scenarios for the same toy examples depitected in Figure 1. (\textbf{a, b}) Red circles indicate the evolutionary roots that best explain the observed orthologs in this species tree.}
+\label{fig2}
+\end{figure}
+
+
+% \newpage
+
+
+%-------------------------------------------------------------
+\section{Quick start}
+%-------------------------------------------------------------
+
+The orthology data required to run \Rpackage{Geneplast} is available in the \Robject{gpdata.gs} dataset. This dataset includes four objects containing information about Clusters of Orthologous Groups derived from the \href{http://string-db.org/}{STRING database}, release 9.1. \Rpackage{Geneplast} can also be used with other sources of orthology information, provided that the input is set according to the \Robject{gpdata.gs} data structure (\textit{note: in order to reduce the processing time this example uses a subset of the STRING database}).
+
+\begin{small}
+<<loadToy, eval=TRUE>>=
+library(geneplast)
+data(gpdata.gs)
+@ 
+\end{small}
+
+\subsection{Evolutionary plasticity inference}
+
+The first step is to create an \Rclass{OGP} object by running the \Rfunction{gplast.preprocess} function. This example uses 121 eukaryotic species from the STRING database and all \textit{OGs} mapped to the genome stabilty gene network \cite{Castro2008}. Next, the \Rfunction{gplast} function perform the plasticity analysis and the \Rfunction{gplast.get} returns the results:
+
+\begin{itemize}
+
+\item 1 - Create an object of class \Rclass{OGP}.
+
+\begin{small}
+<<newOgp, eval=TRUE>>=
+ogp <- gplast.preprocess(cogdata=cogdata, sspids=sspids, cogids=cogids, verbose=FALSE)
+@ 
+\end{small}
+
+\bigskip
+
+\item 2 - Run the \Rfunction{gplast} function.
+
+\begin{small}
+<<gplastTest, eval=TRUE>>=
+ogp <- gplast(ogp, verbose=FALSE)
+@ 
+\end{small}
+
+\bigskip
+
+\item 3 - Get results.
+
+\begin{small}
+<<gplastRes, eval=TRUE>>=
+res <- gplast.get(ogp,what="results")
+head(res)
+@ 
+\end{small}
+
+\end{itemize}
+
+The results are returned in a 3-column \Robject{data.frame} with OG ids (cogids) identified in \Robject{row.names}. Columns are named as \textit{abundance}, \textit{diversity}, and \textit{plasticity}.
+
+The metric \textit{abundance} simply indicates the ratio of orthologs and paralogs by species. For example, KOG0011 cromprises 201 genes distributed in 116 eukaryotic species, with a resulting abundance of 1.7328. Abundance of 1 indicates an one-to-one orthology relationship, while high abundance denotes many duplication episodes on the OG's evolutionary history. Diversity is obtained applying normalized Shannon entropy on orthologous distribution and Plasticity is obtained by EPI index, as described equation (1).
+
+
+\subsection{Evolutionary rooting inference}
+
+The rooting analysis starts with an \Rclass{OGR} object by running the \Rfunction{groot.preprocess} function. This example uses all \textit{OGs} mapped to the genome stability gene network using \textit{H. sapiens} as reference species\cite{Castro2008} and is set to perform 100 permutations for demonstration purposes (for a full analysis, please set \Rfunction{nPermutations}$\geq${1000}). Next, the \Rfunction{groot} function performs the rooting analysis and the results are retrieved by \Rfunction{groot.get}, which returns a \Robject{data.frame} listing the root of each OG evaluated by the \Rfunction{groot} method. The pipeline also returns the inconsistency score, which estimates the stability of the rooting analysis, as well as the associated empirical p-value. Additionally, the \Rfunction{groot.plot} function allows the visualization of the inferred root for a given OG (\textit{e.g.} \textbf{Figure \ref{fig3}}) and the LCAs for the reference species (\textbf{Figure \ref{fig4}}).
+
+
+\begin{itemize}
+
+\item 1 - Create an object of class \Rclass{OGR}.
+
+\begin{small}
+<<newOgr, eval=TRUE>>=
+ogr <- groot.preprocess(cogdata=cogdata, phyloTree=phyloTree, spid="9606", 
+                        cogids=cogids, verbose=FALSE)
+@ 
+\end{small}
+
+\bigskip
+
+\item 2 - Run the groot function.
+
+\begin{small}
+<<grootTest, eval=TRUE>>=
+set.seed(1)
+ogr <- groot(ogr, nPermutations=100, verbose=FALSE)
+@ 
+\end{small}
+
+\bigskip
+
+\item 3 - Get results.
+
+\begin{small}
+<<grootRes, eval=TRUE>>=
+res <- groot.get(ogr,what="results")
+head(res)
+@ 
+\end{small}
+
+\bigskip
+
+\item 4 - Check the inferred root of a given OG
+
+\begin{small}
+<<grootRes, eval=TRUE>>=
+groot.plot(ogr,whichOG="NOG40170")
+@ 
+\end{small}
+
+\bigskip
+
+\item 5 - Visualization of the LCAs for the reference species in the analysis (i.e. \textit{H. sapiens})
+
+\begin{small}
+<<grootRes, eval=TRUE>>=
+groot.plot(ogr,plot.lcas = TRUE)
+@ 
+\end{small}
+
+\end{itemize}
+
+
+
+%%%%%%
+%Fig3%
+%%%%%%
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.8\textwidth]{gproot_NOG40170_9606LCAs.pdf}
+\end{center}
+\caption{Inferred evolutionary rooting scenario for NOG40170. Monophyletic groups are ordered to show all branches of the tree below the queried species in the analysis.}
+\label{fig3}
+\end{figure}
+
+
+%%%%%%
+%Fig4%
+%%%%%%
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.8\textwidth]{gproot_9606LCAs.pdf}
+\end{center}
+\caption{Visualization of the LCAs for the reference species in the analysis.}
+\label{fig4}
+\end{figure}
+
+%-------------------------------------------------------------
+\section{Session info}
+%-------------------------------------------------------------
+
+<<sessionInfo, results=tex, print=TRUE, eval=TRUE>>=
+toLatex(sessionInfo())
+@
+
+\bibliography{Bioc}
+
+\end{document}
+

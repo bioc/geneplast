@@ -1,0 +1,22 @@
+exportClasses(
+ "OGP",
+ "OGR"
+)
+exportMethods(
+  "gplast",
+  "gplast.get",
+  "groot",
+  "groot.get"
+)
+export(
+  "gplast.preprocess",
+  "groot.preprocess",
+  "groot.plot"
+)
+import(methods)
+importFrom(snow, parSapply, parLapply, makeCluster, stopCluster, clusterExport)
+importFrom(ape, drop.tip, rotateConstr, node.height, node.depth, Nedge, Ntip, mrca, dist.nodes)
+importFrom(grDevices, col2rgb, colorRampPalette, dev.off,pdf)
+importFrom(graphics, legend, par, plot, plot.default, points, segments, strwidth, text)
+importFrom(stats, aggregate, ecdf, p.adjust, pnorm, sd, uniroot)
+importFrom(utils, setTxtProgressBar, txtProgressBar)

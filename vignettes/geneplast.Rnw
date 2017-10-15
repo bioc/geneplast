@@ -18,7 +18,7 @@ BiocStyle::latex()
 
 \bioctitle[Geneplast: evolutionary rooting and plasticity inference]{Geneplast: \R{}/\Bioconductor{} package for evolutionary rooting and plasticity inference based on distribution of orthologous groups.}
 
-\author{Rodrigo JS Dalmolin\footnote{rodrigo.dalmolin@imt.ufrn.br}, Mauro AA Castro\footnote{mauro.castro@ufpr.br}}
+\author{Rodrigo JS Dalmolin, Mauro AA Castro}
 
 \begin{document}
 
@@ -48,14 +48,11 @@ where \textit{D}$\alpha$ represents the OG abundance and \textit{H}$\alpha$ the 
 %%%%%%
 \begin{figure}[htbp]
 \begin{center}
-\includegraphics[width=0.8\textwidth]{Fig1.pdf}
+\includegraphics[width=1\textwidth]{Fig1.pdf}
 \end{center}
 \caption{Toy examples showing the distribution of orthologous and paralogous genes in a given species tree. (\textbf{a}) OG of low abundance (D$\alpha$), high diversity (H$\alpha$) and consequently low plasticity (\textit{EPI}). In this hypothetical case, the OG comprises orthologous genes observed in all species, without apparent deletion or duplication episodes. (\textbf{b}) in this example the OG is observed in many species, but not all, with many paralogs in some of them. Green numbers represents the number of orthologous genes in each species.}
 \label{fig1}
 \end{figure}
-
-
-\newpage
 
 
 \Rpackage{Geneplast} also implements a new algorithm called \textit{Bridge} in order to interrogate the evolutionary root of a given gene based on the distribution of its orthologs. The \textit{Bridge} algorithm assesses the probability that an ortholog of a given gene is present in each last common ancestor (LCA) of a given species (in a given species tree). As a result, this approach infers the evolutionary root representing the gene emergence. The method is designed to deal with large scale queries in order to interrogate, for example, all genes annotated in a network (please refer to \cite{Castro2008} for a case study illustrating the advantages of using this approach).
@@ -67,7 +64,7 @@ To illustrate the rooting inference consider the evolutionary scenarios presente
 %%%%%%
 \begin{figure}[htbp]
 \begin{center}
-\includegraphics[width=0.8\textwidth]{Fig2.pdf}
+\includegraphics[width=1\textwidth]{Fig2.pdf}
 \end{center}
 \caption{Possible evolutionary rooting scenarios for the same toy examples depitected in Figure 1. (\textbf{a, b}) Red circles indicate the evolutionary roots that best explain the observed orthologs in this species tree.}
 \label{fig2}
@@ -199,7 +196,7 @@ groot.plot(ogr,plot.lcas = TRUE)
 %%%%%%
 \begin{figure}[htbp]
 \begin{center}
-\includegraphics[width=0.8\textwidth]{gproot_NOG40170_9606LCAs.pdf}
+\includegraphics[width=0.9\textwidth]{gproot_NOG40170_9606LCAs.pdf}
 \end{center}
 \caption{Inferred evolutionary rooting scenario for NOG40170. Monophyletic groups are ordered to show all branches of the tree below the queried species in the analysis.}
 \label{fig3}
@@ -211,11 +208,13 @@ groot.plot(ogr,plot.lcas = TRUE)
 %%%%%%
 \begin{figure}[htbp]
 \begin{center}
-\includegraphics[width=0.8\textwidth]{gproot_9606LCAs.pdf}
+\includegraphics[width=3\textwidth]{gproot_9606LCAs.pdf}
 \end{center}
 \caption{Visualization of the LCAs for the reference species in the analysis.}
 \label{fig4}
 \end{figure}
+
+
 
 %-------------------------------------------------------------
 \section{Session info}

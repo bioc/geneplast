@@ -1,14 +1,16 @@
 Package: geneplast
 Type: Package
 Title: Evolutionary and plasticity analysis based on orthologous groups distribution
-Version: 1.5.0
+Version: 1.5.1
 Author: Rodrigo Dalmolin, Mauro Castro
 Maintainer: Mauro Castro <mauro.a.castro@gmail.com>
 Depends: R (>= 3.3), methods
 Imports: snow,ape,grDevices,graphics,stats,utils
-Suggests: BiocStyle, RUnit, BiocGenerics
+Suggests: RUnit, BiocGenerics, BiocStyle, knitr, rmarkdown
 Description: Geneplast is designed for evolutionary and plasticity analysis based on orthologous groups distribution in a given species tree. It uses Shannon information theory and orthologs abundance to estimate the Evolutionary Plasticity Index. Additionally, it implements the Bridge algorithm to determine the evolutionary root of a given gene based on its orthologs distribution.
+License: GPL (>= 2)
 biocViews: Genetics, GeneRegulation, SystemsBiology
+VignetteBuilder: knitr
 Collate:
   AllChecks.R
   AllClasses.R
@@ -17,5 +19,5 @@ Collate:
   AllContructors.R
   AllSupplements.R
   AllPlots.R
-License: GPL (>= 2)
 LazyLoad: yes
+NeedsCompilation: no

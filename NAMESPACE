@@ -11,7 +11,9 @@ exportMethods(
 export(
   "gplast.preprocess",
   "groot.preprocess",
-  "groot.plot"
+  "groot.plot",
+  "ogr2tni",
+  "ogr2igraph"
 )
 import(methods)
 importFrom(snow, parSapply, parLapply, makeCluster, stopCluster, clusterExport)
@@ -20,3 +22,4 @@ importFrom(grDevices, col2rgb, colorRampPalette, dev.off,pdf)
 importFrom(graphics, legend, par, plot, plot.default, points, segments, strwidth, text)
 importFrom(stats, aggregate, ecdf, p.adjust, pnorm, sd, uniroot)
 importFrom(utils, setTxtProgressBar, txtProgressBar)
+importFrom(igraph, vertex_attr, vertex_attr_names, set_vertex_attr)

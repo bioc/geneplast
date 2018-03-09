@@ -78,30 +78,29 @@ groot.preprocess<-function(cogdata, phyloTree, spid, cogids=NULL, verbose=TRUE){
   
   #get cogids
   if(is.null(cogids)){
-    cogids<-unique(as.character(cogdata[,3]))
+    cogids <- cogdata$cog_id[cogdata$ssp_id==spid]
+    cogids<-unique(as.character(cogids))
     cogids<-cogids[!is.na(cogids)]
     cogids<-cogids[cogids!='']
-    cogids<-data.frame(cogids=cogids,stringsAsFactors=FALSE)
-    rownames(cogids)<-cogids[,1]
+    cogids<-data.frame(cog_id=cogids,stringsAsFactors=FALSE, row.names = cogids)
   } else {
-    if(any(!cogids[,1]%in%cogdata$cog_id)){
-      stop("NOTE: 'cogids' not listed in 'cogdata'!")
+    if(any(!cogids$cog_id%in%cogdata$cog_id)){
+      stop("NOTE: one or more 'cogids' not listed in 'cogdata'!")
     }
   }
   
   #remove non-usefull data
-  cogdata<-cogdata[cogdata$cog_id%in%cogids[,1],]
+  cogdata<-cogdata[cogdata$cog_id%in%cogids$cog_id,]
   checkcogid<-unique(cogdata$cog_id[which(cogdata$ssp_id==spid)]) 
-  idx<-cogids[,1]%in%checkcogid
+  idx<-cogids$cog_id%in%checkcogid
   if(any(!idx)){
-    checkcogid<-cogids[!idx,1]
+    checkcogid<-cogids$cog_id[!idx]
     cogids<-cogids[idx,,drop=FALSE]
     tp<-paste(checkcogid,collapse =",")
-    warning("'spid' query not listed in one or more 'cogids':\n",
-            tp,call. = FALSE)
+    warning("'spid' not listed in one or more 'cogids':\n", tp,call. = FALSE)
   }
   #compute orthoct
-  orthoct<-rootCount(cogdata=cogdata,cogvec=cogids[,1],sspvec=spbranches[,1])
+  orthoct<-rootCount(cogdata=cogdata,cogvec=cogids$cog_id,sspvec=spbranches$ssp_id, verbose=verbose)
   orthoct<-data.frame(ssp_id=row.names(orthoct),orthoct,stringsAsFactors=FALSE)
   orthoct<-merge(spbranches,orthoct, by="ssp_id", all=TRUE)
   rownames(orthoct)<-orthoct[,1]
@@ -109,8 +108,7 @@ groot.preprocess<-function(cogdata, phyloTree, spid, cogids=NULL, verbose=TRUE){
   orthoct<-orthoct[sort.list(orthoct[,spid]),]
   
   #---return OGR
-  object <- new("OGR", cogids=cogids, tree=phyloTree, 
-                spbranches=spbranches, orthoct=orthoct)
+  object <- new("OGR", cogids=cogids, tree=phyloTree, spbranches=spbranches, orthoct=orthoct)
   
   return(object)
 }

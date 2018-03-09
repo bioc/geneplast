@@ -1,6 +1,113 @@
-######################################
+
+######################################################################
+### ogr2igraph
+######################################################################
+ogr2igraph <- function(ogr, cogdata, g, idkey="ENTREZ"){
+  
+  #--- check input objects
+  if(class(ogr)!="OGR")stop("NOTE: input 'ogr' should be a 'OGR' class object! ")
+  if(class(g)!="igraph")stop("NOTE: input 'g' should be an 'igraph' class object! ")
+  cogdata=geneplast.checks(name="cogdata",para=cogdata)
+  idkey=geneplast.checks(name="idkey",para=idkey)
+  
+  #--- check status
+  if(ogr@status["Rooting"]!="[x]")
+    stop("NOTE: input 'ogr' needs 'groot' evaluation!")
+  
+  #--- check idkey
+  if(!idkey%in%vertex_attr_names(g)){
+    stop("NOTE: 'idkey' should be listed as vertex attribute in 'g'!")
+  }
+  vids <- vertex_attr(g,idkey)
+  
+  #--- get ssp_id
+  spbranch <- groot.get(ogr, what="spbranches")
+  ssp_id <- names(spbranch)[3]
+  
+  #--- get cogSP
+  cogSP <- cogdata[cogdata$ssp_id==ssp_id,]
+  results <- groot.get(ogr, what="results")
+  idx <- match(cogSP$cog_id, rownames(results))
+  cogSP$Root <- results$Root[idx]
+  
+  #--- find matching col
+  mcol <-sapply(1:ncol(cogSP), function(i){
+    sum(vids%in%cogSP[[i]])
+  })
+  mcol <- which.max(mcol)
+  
+  #--- count matches
+  nm <- round( (sum(vids%in%cogSP[[mcol]])/length(vids) ) * 100, digits = 0)
+  if(nm < 50){
+    stop("NOTE: 'idkey' maps only ",nm,"% of the IDs between 'cogdata' and 'g' objects!")
+  } else if(nm < 90){
+    warning("NOTE: 'idkey' maps ",nm,"% of the IDs between 'cogdata' and 'g' objects!")
+  }
+  
+  #--- transfer rooting information
+  idx <- match(vids,cogSP[[mcol]])
+  g <- set_vertex_attr(g, name="Root", value=cogSP$Root[idx])
+  return(g)
+  
+}
+
+######################################################################
+### ogr2tni
+######################################################################
+ogr2tni <- function(ogr, cogdata, tni){
+  
+  #---
+  if(class(ogr)!="OGR")stop("NOTE: input 'ogr' should be a 'OGR' class object! ")
+  if(class(tni)!="TNI")stop("NOTE: input 'tni' should be a 'TNI' class object! ")
+    
+  #---
+  if(ogr@status["Rooting"]!="[x]")
+    stop("NOTE: input 'ogr' needs 'groot' evaluation!")
+  if(tni@status["DPI.filter"]!="[x]")
+    stop("NOTE: input 'tni' needs 'tni.dpi.filter' evaluation!")
+  
+  #--- check agreement between ogr, cogdata, tni!
+  
+  
+  
+  
+  
+  
+  #--- get ssp_id
+  spbranch <- groot.get(ogr, what="spbranches")
+  ssp_id <- names(spbranch)[3]
+  
+  #---- get cogSP
+  cogSP <- cogdata[cogdata$ssp_id==ssp_id,]
+  results <- groot.get(ogr, what="results")
+  idx <- match(cogSP$cog_id, rownames(results))
+  cogSP$Root <- results$Root[idx]
+  
+  #---- match geneannot and rooting information
+  geneannot <- tni@rowAnnotation
+  rownames(geneannot) <- geneannot$ENTREZ
+  idx <- match(geneannot$ENTREZ,cogSP$gene_id)
+  geneannot$COGID <- cogSP$cog_id[idx]
+  geneannot$Root <- cogSP$Root[idx]
+  
+  #--- update tni with rooting information
+  tni@rowAnnotation <- cbind(tni@rowAnnotation,geneannot[,c("COGID","Root")])
+  validTar <- tni@rowAnnotation$PROBEID[!is.na(tni@rowAnnotation$Root)]
+  validReg <- tni@regulatoryElements[tni@regulatoryElements %in% validTar]
+  tni@regulatoryElements <- validReg
+  tni@rowAnnotation <- tni@rowAnnotation[validTar,]
+  tni@gexp <- tni@gexp[validTar,]
+  tni@results$tn.ref <- tni@results$tn.ref[validTar,validReg]
+  tni@results$tn.dpi <- tni@results$tn.dpi[validTar,validReg]
+  
+  return(tni)
+  
+}
+
+
+######################################################################
 ### EPI supplements
-######################################
+######################################################################
 #count protein number for each cog
 orthoCount<-function(cogdata,cogvec,sspvec,verbose){
   if(verbose) pb <- txtProgressBar(style=3)
@@ -58,9 +165,9 @@ epidx<-function(div, abd){
   return(res)
 }
 
-######################################
+######################################################################
 ###  KS statistic
-######################################
+######################################################################
 ksmethod<-function(rootprobs,orthoct){
   #compute roots
   Root<-NULL
@@ -127,9 +234,9 @@ droot<-function (x, y, doplot=FALSE) {
   max(z)
 }
 
-######################################
+######################################################################
 ###  Bridge statistic
-######################################
+######################################################################
 brmethod<-function(rootprobs,cutoff){
   #compute roots
   Root<-NULL
@@ -164,26 +271,27 @@ brmethod<-function(rootprobs,cutoff){
   return(orthoroot)
 }
 
-######################################
+######################################################################
 ###  Count protein number for each cog
-######################################
-rootCount<-function(cogdata,cogvec,sspvec){
-  orthotable<-sapply(cogvec,function(cog){
-    dt<-cogdata[which(cogdata[,3]==cog),]
-    res<-sapply(sspvec,function(sp){
-      sum(dt[,2]==sp)
-    })
-    res
+######################################################################
+rootCount<-function(cogdata,cogvec,sspvec, verbose){
+  if(verbose) pb <- txtProgressBar(style=3)
+  len <- length(cogvec)
+  orthotable<-sapply(1:len,function(i){
+    if(verbose) setTxtProgressBar(pb, i/len)
+    dt<-cogdata[which(cogdata$cog_id==cogvec[i]),]
+    sapply(sspvec,function(sp){sum(dt$ssp_id==sp)})
   })
+  if(verbose) close(pb)
   rownames(orthotable)<-sspvec
   colnames(orthotable)<-cogvec
   orthotable[orthotable>0]=1
   return(orthotable)
 }
 
-######################################
+######################################################################
 ###  Permutation analysis
-######################################197
+######################################################################
 runPermutation<-function(orthoroot, rootprobs, nPermutations, verbose){
   #function to compute Dscore from random rootprobs
   computeNullRootprobs<-function(rootprobs,orthoroot){
@@ -266,18 +374,18 @@ gedAdjDscore<-function(proot,rt,perm=FALSE){
 # testddist(nroot=25,nPermutations=1000)
 #---
 
-######################################
+######################################################################
 ###  pars-based probs
-######################################
+######################################################################
 getprobs<-function(x,penalty){
   loss<-length(x)-sum(x)
   gain<-sum(x)*penalty
   gain/(gain+loss)
 }
 
-######################################
+######################################################################
 ###  check if snow cluster is loaded
-######################################
+######################################################################
 isParallel<-function(){
   b1<-"package:snow" %in% search()
   b2<-tryCatch({
@@ -294,9 +402,9 @@ isParallel<-function(){
 }
 
 
-##################################################
+######################################################################
 ### Return LCAs and branches from a 'phylo' obj
-##################################################
+######################################################################
 spBranches<-function(phyloTree,spid){
   if(all(phyloTree$tip.label!=spid)){
     stop("NOTE: 'spid' should be listed in 'phyloTree'!")

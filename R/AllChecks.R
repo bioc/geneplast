@@ -9,7 +9,7 @@ geneplast.checks <- function(name, para) {
                  paste(opts,collapse = ", ") ) ,call.=FALSE)
   } 
   else if(name=="groot.get"){
-    opts<-c("cogids","spbranch","orthoroot","status","results")
+    opts<-c("cogids","spbranches","orthoroot","status","results","tree")
     if(!is.character(para) || length(para)!=1 || !(para %in% opts))
       stop(paste("'what' should be any one of the options: \n", 
                  paste(opts,collapse = ", ") ) ,call.=FALSE)
@@ -20,7 +20,7 @@ geneplast.checks <- function(name, para) {
   } 
   else if(name=="cogdata"){
     if( (!is.matrix(para) && !is.data.frame(para) ) || ncol(para)<3 ){
-      stop("'cogdata' object should be a dataframe or a matrix of characters with length >= 3 !\n",
+      stop("'cogdata' object should be a data frame with length >= 3 !\n",
            call.=FALSE)
     }
     clpars<-c("protein_id","ssp_id","cog_id")
@@ -46,7 +46,7 @@ geneplast.checks <- function(name, para) {
       para<-para[which(idx),]
     }
     if(nrow(para)<=3){
-      stop("'cogdata' matrix has no useful data!\n",call.=FALSE)
+      stop("'cogdata' has no useful data!\n",call.=FALSE)
     }
     return(para)
   } 
@@ -57,7 +57,7 @@ geneplast.checks <- function(name, para) {
       b1<-is.character(para)
       b2<-is.matrix(para) || is.data.frame(para)
       if(!b1 && !b2){
-        stop("'cogids' should be a vector of characters or dataframe! \n",
+        stop("'cogids' should be a vector of data frame! \n",
              call.=FALSE)
       }
       if(b1){
@@ -70,12 +70,11 @@ geneplast.checks <- function(name, para) {
         clpars<-c("cog_id")
         clname<-tolower(colnames(para))
         if(!all(clpars%in%clname)){
-          stop("'cogids' colnames should include: ",paste(clpars,collapse=", "),
-               call.=FALSE)
+          stop("'cogids' colnames should include: '",clpars,"'!", call.=FALSE)
         }
         colnames(para)<-clname
         para<-para[,c(clpars,clname[which(!clname%in%clpars)]),drop=FALSE]
-        para[,1]<-as.character(para[,1],drop=FALSE)
+        para[,1]<-as.character(para[,1])
         for(i in 1:ncol(para)){
           if(!is.numeric(para[,i]) || !is.integer(para[,i])){
             para[,i]<-as.character(para[,i])
@@ -179,6 +178,12 @@ geneplast.checks <- function(name, para) {
     if(is.integer(para) || is.numeric(para) ) para<-as.character(para)
     if( !is.character(para) || length(para)!=1 )
       stop("'spid' should be a character or integer value!\n",call.=FALSE)
+    para<-as.character(para)
+    return(para)
+  } 
+  else if(name=="idkey"){
+    if( !is.character(para) || length(para)!=1 )
+      stop("'idkey' should be a character value!\n",call.=FALSE)
     para<-as.character(para)
     return(para)
   } 

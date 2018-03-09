@@ -109,11 +109,11 @@ groot.plot(ogr,plot.lcas = TRUE)
 ![title](Fig4.png)
 <b>Figure 4.</b> *Visualization of the LCAs for the reference species in the analysis*.
 
-# Case study
+# Case studies
 
-This example aims to show the evolutionary root of regulons derived from breast cancer data [@Fletcher2013]. The idea is to map the appearance of each regulon (and the corresponding target genes) in a species tree. To make this work, we need to map the gene annotation derived from the **geneplast** data integration with the gene annotation available from the **RTN** and **Fletcher2013b** packages.
+## High-throughput rooting inference
 
-## Evolutionary rooting inference for all human genes
+This example shows how to assess all *OGs* annotated for *H. sapiens*.
 
 1 - Load orthogy data from the **geneplast.data.string.v91** package (*currently available under request*).
 
@@ -122,144 +122,80 @@ library(geneplast.data.string.v91)
 data(gpdata_string_v91)
 ```
 
-2 - Get relevant OGs from `cogdata` object for the reference 'spid', in this case '9606' (H. sapiens).
+2 - Create an object of class 'OGR' for a reference 'spid'.
 
 ```{r, eval=FALSE}
-cogs9606 <- cogdata[cogdata$ssp_id=="9606",]
+ogr <- groot.preprocess(cogdata=cogdata, phyloTree=phyloTree, spid="9606")
 ```
 
-3 - Create an object of class 'OGR' for the reference 'spid'.
-
-```{r, eval=FALSE}
-ogr <- groot.preprocess(cogdata=cogdata, phyloTree=phyloTree, spid="9606", cogids=unique(cogs9606$cog_id), verbose=TRUE)
-```
-
-4 - Run the `groot` function and infer the evolutionary roots. 
+3 - Run the `groot` function and infer the evolutionary roots. 
 *Note: this step should take a long processing time due to the large number of OGs in the input data (also, `nPermutations` argument is set to 100 for demonstration purpose only).*
 
 ```{r, eval=FALSE}
 ogr <- groot(ogr, nPermutations=100, verbose=TRUE)
-res <- groot.get(ogr, what="results")
 ```
 
-5 - Map the inferred roots to related proteins of the reference 'spid'.
+## Map rooting information on regulatory networks
 
-```{r, eval=FALSE}
-idx <- match(cogs9606$cog_id, rownames(res))
-cogs9606$Root <- res$Root[idx]
-```
+This example aims to show the evolutionary root of regulons [@Fletcher2013]. The idea is to map the appearance of each regulon (and the corresponding target genes) in a species tree. The next steps show how to tranfer evolutionary rooting information from **geneplast** to a graph model.
+*Note: to make this work the gene annotation available from the input regulatory network needs to match the annotation available from the geneplast data (in this case, ENTREZ gene IDs are used to match the datasets).*
 
-##Retrive regulon annotation
-
-Load regulons from **Fletcher2013b** data package. The `rtni1st` represents a `TNI` class object with regulons computed from breast cancer data [@Fletcher2013].
+1 - Load a `TNI` class object. The `rtni1st` object provides regulons available from the **Fletcher2013b** data package computed from breast cancer data [@Fletcher2013].
 
 ```{r, eval=FALSE}
 library(RTN)
 library(Fletcher2013b)
 data("rtni1st")
-rtni1st <- upgradeTNI(rtni1st) # just upgrade to the latest RTN version!
 ```
 
-1 - Get regulators annotated for each regulon. In this case, regulators represent transcription factors (TFs). *Note: gene identifiers should map to `cogs9606`*.
+2 - Extract two regulons from `rtni1st` into an `igraph` object.
 
 ```{r, eval=FALSE}
-regulon_TF <- tni.get(rtni1st, what = "regulatoryElements", idkey = "ENTREZ")
-```
-
-2 - Now get TF-targets annotated for each regulon.
-
-```{r, eval=FALSE}
-regulon_TAR <- tni.get(rtni1st, what = "regulons", idkey = "ENTREZ")
-```
-
-3 - Finally, get all gene annotation available from the `rtni1st` object.
-
-```{r, eval=FALSE}
-geneannot <- tni.get(rtni1st, what = "rowAnnotation")
-rownames(geneannot) <- geneannot$ENTREZ
-```
-
-##Combine OG, root and gene annotation into a single dataset.
-
-In this step the information from **geneplast** and **Fletcher2013b** is crossed using the ENTREZ identifiers.
-
-```{r, eval=FALSE}
-idx <- match(geneannot$ENTREZ,cogs9606$gene_id)
-geneannot$COGID <- cogs9606$cog_id[idx]
-geneannot$Root <- cogs9606$Root[idx]
-```
-
-##Map inferred roots to regulons into the 'TNI' object.
- 
-1 - Add roots to the `rtni1st` object.
-
-```{r, eval=FALSE}
-rtni1st@rowAnnotation <- cbind(rtni1st@rowAnnotation,geneannot[,c("COGID","Root")])
-```
-
-2 - Now get valid identifiers, representing those genes with root information.
-
-```{r, eval=FALSE}
-validTar <- rtni1st@rowAnnotation$PROBEID[!is.na(rtni1st@rowAnnotation$Root)]
-validReg <- rtni1st@regulatoryElements[rtni1st@regulatoryElements %in% validTar]
-```
-
-3 - Reduce the `rtni1st` object to validated regulators and targets, including gene expression data and the regulatory network (i.e. `gexp`, `tn.ref`, `tn.dpi` matrices).
-
-```{r, eval=FALSE}
-rtni1st@regulatoryElements <- validReg
-rtni1st@rowAnnotation <- rtni1st@rowAnnotation[validTar,]
-rtni1st@gexp <- rtni1st@gexp[validTar,]
-rtni1st@results$tn.ref <- rtni1st@results$tn.ref[validTar,validReg]
-rtni1st@results$tn.dpi <- rtni1st@results$tn.dpi[validTar,validReg]
-```
-
-##Plot regulons and root information with RedeR
-
-```{r, eval=FALSE}
-library(RedeR)
 library(igraph)
-```
-
-1 - Extract regulons into a graph format using `gtype = rmap`.
-
-```{r, eval=FALSE}
-regs <- rtni1st@regulatoryElements[c("FOXM1","PTTG1")]
+regs <- c("FOXM1","PTTG1")
 g <- tni.graph(rtni1st, gtype = "rmap", tfs = regs)
 ```
 
-2 - Map roots using collor attributes.
+3 - Map rooting information on the `igraph` object.
+
+```{r, eval=FALSE}
+g <- ogr2igraph(ogr, cogdata, g, idkey = "ENTREZ")
+```
+
+4 - Adjust colors for rooting information.
 
 ```{r, eval=FALSE}
 library(RColorBrewer)
-rcb<- brewer.pal(9, "Purples")
-color_col <- colorRampPalette(rcb)(25) #cria função
-g <- att.setv(g=g, from="Root", to="nodeColor", cols=color_col)
+pal <- brewer.pal(9, "RdYlBu")
+color_col <- colorRampPalette(pal)(25) #set a color for each possible root!
+g <- att.setv(g=g, from="Root", to="nodeColor", cols=color_col, na.col = "grey80", breaks = seq(1,25))
 ```
 
-3 - Adjust font size for regulon names.
+5 - Aesthetic adjusts for some graph attributes.
 
 ```{r, eval=FALSE}
-idx <- V(g)$name %in% regs
+idx <- V(g)$SYMBOL %in% regs
 V(g)$nodeFontSize[idx] <- 30
 V(g)$nodeFontSize[!idx] <- 1
+E(g)$edgeColor <- "grey80"
+V(g)$nodeLineColor <- "grey80"
 ```
 
-4 - Load **RedeR** graph package.
+6 - Load **RedeR** graph package.
 
 ```{r, eval=FALSE}
+library(RedeR)
 rdp <- RedPort()
 calld(rdp)
 ```
 
-5 - Add graphs to **RedeR** interface.
+7 - Send the `igraph` object to **RedeR** interface.
 
 ```{r, eval=FALSE}
 resetd(rdp)
-addGraph( rdp, g, layout= NULL)
-addLegend.color(rdp, colvec=g$legNodeColor$scale, size=15,
-                labvec=g$legNodeColor$legend, title="Root")
-relax(rdp, 20, 100, 20, 50, 10, 100, 10, 2)
+addGraph( rdp, g, layout=NULL)
+addLegend.color(rdp, colvec=g$legNodeColor$scale, size=15, labvec=g$legNodeColor$legend, title="Roots represented in Fig4")
+relax(rdp, 15, 100, 20, 50, 10, 100, 10, 2, ps=TRUE)
 ```
 
 ![title](Fig5.png)

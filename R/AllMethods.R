@@ -118,6 +118,7 @@ setMethod("groot","OGR",
             return(object)
           }
 )
+
 ##------------------------------------------------------------------------------
 ##get slots from gplast 
 setMethod(

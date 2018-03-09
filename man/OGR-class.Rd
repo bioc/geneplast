@@ -1,9 +1,9 @@
 \name{OGR-class}
-\Rdversion{1.1}
 \docType{class}
 \alias{OGR-class}
 \alias{groot,OGR-method}
 \alias{groot.get,OGR-method}
+\alias{groot.integration,OGR-method}
 
 \title{Class \code{"OGR"}: an S4 class for rooting analysis.}
 

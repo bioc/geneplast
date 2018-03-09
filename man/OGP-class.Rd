@@ -1,5 +1,4 @@
 \name{OGP-class}
-\Rdversion{1.1}
 \docType{class}
 \alias{OGP-class}
 \alias{gplast,OGP-method}

@@ -138,7 +138,8 @@ groot.plot<-function(ogr, whichOG, fname="gproot",  width=4.5, height=6.5, cex.l
   if(length(nsegs)==0)nsegs=0
   
   #---set x,y positions
-  yy <- node.height(x, clado.style = TRUE)
+  # yy <- node.height(x, clado.style = TRUE)
+  yy <- .node.height(x)
   xx <- node.depth(x, method = 1)-1
   xx <- max(xx) - xx
   Ntip <- length(x$tip.label)
@@ -175,7 +176,6 @@ groot.plot<-function(ogr, whichOG, fname="gproot",  width=4.5, height=6.5, cex.l
   segments(xx[x$edge[, 1]], yy[x$edge[, 1]], xx[x$edge[, 2]], yy[x$edge[, 2]], 
            col=c(rep( col.edges[2],nsegs),rep( col.edges[1],Nedge-nsegs)), 
            lwd=1, lty=1)
-  
   #---plot root
   points(xx[rtnode], yy[rtnode], pch=23, col=col.root[1], 
          bg=col.root[2], cex=pargs$cex.nodes*1.3)
@@ -194,11 +194,25 @@ groot.plot<-function(ogr, whichOG, fname="gproot",  width=4.5, height=6.5, cex.l
   
   #---plot legend
   legend("topleft",legend=c(whichOG), cex=1.0, bty="n")  
-  
   legend("bottomleft",legend=c("OG presence","OG absence","Inferred root",NA,lgres), 
          col=c(col.tips[2],col.tips[1],col.root[1],NA,NA,NA,NA), 
          pt.bg=c(col.tips[4],col.tips[3],col.root[2],NA,NA,NA,NA),
          pch=c(21,21,23,NA,NA,NA,NA), cex=0.6, pt.cex=0.8, inset = 0.05, bty="n")  
+}
+# fix a bug (or change) in "node.height" from ape
+.node.height <- function(phy){
+  n <- length(phy$tip.label)
+  m <- phy$Nnode
+  N <- dim(phy$edge)[1]
+  phy <- reorder(phy)
+  yy <- numeric(n + m)
+  e2 <- phy$edge[, 2]
+  yy[e2[e2 <= n]] <- 1:n
+  phy <- reorder(phy, order = "postorder")
+  e1 <- phy$edge[, 1]
+  e2 <- phy$edge[, 2]
+  .C(node_height_clado, as.integer(n), as.integer(e1), 
+     as.integer(e2), as.integer(N), double(n + m), as.double(yy))[[6]]
 }
 
 ##################################################
@@ -207,7 +221,8 @@ groot.plot<-function(ogr, whichOG, fname="gproot",  width=4.5, height=6.5, cex.l
 .plot.lcas<-function(x, pargs, lcas, refsp, refspname){
 
   #---set x,y positions
-  yy <- node.height(x, clado.style = TRUE)
+  # yy <- node.height(x, clado.style = TRUE)
+  yy <- .node.height(x)
   xx <- node.depth(x, method = 1)-1
   xx <- max(xx) - xx
   Ntip <- length(x$tip.label)

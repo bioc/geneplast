@@ -1,6 +1,6 @@
 ---
-title: "Geneplast: evolutionary rooting and plasticity inference based on distribution of orthologous groups."
-author: "Rodrigo JS Dalmolin, Mauro AA Castro."
+title: "Geneplast: evolutionary rooting and plasticity analysis of orthologous groups."
+author: "Rodrigo JS Dalmolin, Sheyla Trefflich, Diego AA Morais, Mauro AA Castro."
 date: "`r BiocStyle::doc_date()`"
 package: "`r BiocStyle::pkg_ver('geneplast')`"
 bibliography: bibliography.bib
@@ -37,7 +37,7 @@ the evolutionary root placed at node d. The **geneplast** rooting pipeline is de
 
 
 ![title](Fig2.png)
-<b>Figure 2.</b> **Possible evolutionary rooting scenarios for the same toy examples depitected in Figure 1**. (**a, b**) Red circles indicate the evolutionary roots that best explain the observed orthologs in this species tree.
+<b>Figure 2.</b> *Possible evolutionary rooting scenarios for the same toy examples depitected in Figure 1*. (**a, b**) Red circles indicate the evolutionary roots that best explain the observed orthologs in this species tree.
 
 
 # Quick start
@@ -135,23 +135,90 @@ ogr <- groot.preprocess(cogdata=cogdata, phyloTree=phyloTree, spid="9606")
 ogr <- groot(ogr, nPermutations=100, verbose=TRUE)
 ```
 
+## Map rooting information on PPI networks
+
+This example aims to show the evolutionary root of a protein-protein interaction (PPI) network, mapping the appearance of each gene in a given species tree. The next steps show how to tranfer evolutionary rooting information from **geneplast** to a graph model.
+*Note: to make this work the gene annotation available from the input PPI network needs to match the annotation available from the geneplast data (in this case, ENTREZ gene IDs are used to match the datasets).*
+
+1 - Load a PPI network and required packages. The `igraph` object called 'ppi.gs' provides PPI information for apoptosis and genome-stability genes [@Castro2008].
+
+```{r, eval=FALSE}
+library(RedeR)
+library(igraph)
+library(RColorBrewer)
+data(ppi.gs)
+```
+
+2 - Map rooting information on the `igraph` object.
+
+```{r, eval=FALSE}
+g <- ogr2igraph(ogr, cogdata, ppi.gs, idkey = "ENTREZ")
+```
+
+3 - Adjust colors for rooting information.
+
+```{r, eval=FALSE}
+pal <- brewer.pal(9, "RdYlBu")
+color_col <- colorRampPalette(pal)(25) #set a color for each root!
+g <- att.setv(g=g, from="Root", to="nodeColor", cols=color_col, na.col = "grey80", breaks = seq(1,25))
+```
+
+4 - Aesthetic adjusts for some graph attributes.
+
+```{r, eval=FALSE}
+g <- att.setv(g = g, from = "SYMBOL", to = "nodeAlias")
+E(g)$edgeColor <- "grey80"
+V(g)$nodeLineColor <- "grey80"
+```
+
+5 - Send the `igraph` object to **RedeR** interface.
+
+```{r, eval=FALSE}
+rdp <- RedPort()
+calld(rdp)
+resetd(rdp)
+addGraph(rdp, g)
+addLegend.color(rdp, colvec=g$legNodeColor$scale, size=15, labvec=g$legNodeColor$legend, title="Roots represented in Fig4")
+```
+
+6 - Get apoptosis and genome-stability sub-networks.
+
+```{r, eval=FALSE}
+g1  <- induced_subgraph(g=g, V(g)$name[V(g)$Apoptosis==1])
+g2  <- induced_subgraph(g=g, V(g)$name[V(g)$GenomeStability==1])
+```
+
+7 - Group apoptosis and genome-stability genes into containers.
+
+```{r, eval=FALSE}
+myTheme <- list(nestFontSize=25, zoom=80, isNest=TRUE, gscale=65, theme=2)
+addGraph(rdp, g1, gcoord=c(25, 50), theme = c(myTheme, nestAlias="Apoptosis"))
+addGraph(rdp, g2, gcoord=c(75, 50), theme = c(myTheme, nestAlias="Genome Stability"))
+relax(rdp, p1=50, p2=50, p3=50, p4=50, p5= 50, ps = TRUE)
+```
+
+![title](Fig5.png)
+<b>Figure 5.</b> *Inferred evolutionary roots of a protein-protein interaction network*.
+
 ## Map rooting information on regulatory networks
 
 This example aims to show the evolutionary root of regulons [@Fletcher2013]. The idea is to map the appearance of each regulon (and the corresponding target genes) in a species tree. The next steps show how to tranfer evolutionary rooting information from **geneplast** to a graph model.
 *Note: to make this work the gene annotation available from the input regulatory network needs to match the annotation available from the geneplast data (in this case, ENTREZ gene IDs are used to match the datasets).*
 
-1 - Load a `TNI` class object. The `rtni1st` object provides regulons available from the **Fletcher2013b** data package computed from breast cancer data [@Fletcher2013].
+1 - Load a `TNI` class object and required packages. The `rtni1st` object provides regulons available from the **Fletcher2013b** data package computed from breast cancer data [@Fletcher2013].
 
 ```{r, eval=FALSE}
 library(RTN)
 library(Fletcher2013b)
+library(RedeR)
+library(igraph)
+library(RColorBrewer)
 data("rtni1st")
 ```
 
 2 - Extract two regulons from `rtni1st` into an `igraph` object.
 
 ```{r, eval=FALSE}
-library(igraph)
 regs <- c("FOXM1","PTTG1")
 g <- tni.graph(rtni1st, gtype = "rmap", tfs = regs)
 ```
@@ -165,9 +232,8 @@ g <- ogr2igraph(ogr, cogdata, g, idkey = "ENTREZ")
 4 - Adjust colors for rooting information.
 
 ```{r, eval=FALSE}
-library(RColorBrewer)
 pal <- brewer.pal(9, "RdYlBu")
-color_col <- colorRampPalette(pal)(25) #set a color for each possible root!
+color_col <- colorRampPalette(pal)(25) #set a color for each root!
 g <- att.setv(g=g, from="Root", to="nodeColor", cols=color_col, na.col = "grey80", breaks = seq(1,25))
 ```
 
@@ -181,25 +247,19 @@ E(g)$edgeColor <- "grey80"
 V(g)$nodeLineColor <- "grey80"
 ```
 
-6 - Load **RedeR** graph package.
+6 - Send the `igraph` object to **RedeR** interface.
 
 ```{r, eval=FALSE}
-library(RedeR)
 rdp <- RedPort()
 calld(rdp)
-```
-
-7 - Send the `igraph` object to **RedeR** interface.
-
-```{r, eval=FALSE}
 resetd(rdp)
 addGraph( rdp, g, layout=NULL)
 addLegend.color(rdp, colvec=g$legNodeColor$scale, size=15, labvec=g$legNodeColor$legend, title="Roots represented in Fig4")
 relax(rdp, 15, 100, 20, 50, 10, 100, 10, 2, ps=TRUE)
 ```
 
-![title](Fig5.png)
-<b>Figure 5.</b> *Inferred evolutionary roots of two regulators (FOXM1 and PTTG1) and the corresponding targets*.
+![title](Fig6.png)
+<b>Figure 6.</b> *Inferred evolutionary roots of two regulators (FOXM1 and PTTG1) and the corresponding targets*.
 
 
 # Session information

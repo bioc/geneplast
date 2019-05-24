@@ -4,7 +4,7 @@
 \title{Evolutionary rooting inference.}
 
 \description{
-Function to determine the evolutionary root of a gene based on its orthologs distribution.
+Function to determine the evolutionary root of a gene based on the distribution of its orthologs.
 }
 
 \usage{
@@ -38,9 +38,12 @@ or not (when verbose=FALSE).
 }
 
 \details{
-This function addresses the problem of finding the evolutionary root of a feature in an evolutionary tree. The method infers the probability that such feature had been present in each last common ancestor (LCA) of a given existent species in the tree. Regarding genes, this is a delicate task, especially due to mechanisms like horizontal gene transfer, gene deletion, de novo gene formation, among others, which add noise to the vertical heritage pattern. The groot function estimates this information by accessing the presence and absence of orthologs in the tree branches and summarizes the available evidences supporting the ancestor ortholog in the LCA. A probability distribution is derived from this process, which sets the searching space used in the rooting algorithm described next.
-The penalty argument allows weighing gene gain and loss during speciation; penalty=1 indicates same probability; penalty > 1 indicates higher probability of gene loss while penalty < 1 indicates higher probability of gene gain. Penalty value should be greater than zero (default penalty=2).
-The rooting algorithm is set by the argument method. The current version introduces the Bridge (BR) algorithm, which search the previously computed probability distribution to find the most reliable evolutionary root. The algorithm search for the optimum point that splits the probability distribution in two components: one enriched with the queried feature and another with low evidence in favor of the feature's presence. The cutoff sets the tolerance for the discrimination (default cutoff=0.3). The groot function also computes the inconsistence score Dscore in order to accesses the significance of the observed root, which is tested against a null distribution derived by permutation analysis.
+The 'groot' function addresses the problem of finding the evolutionary root of a feature in an phylogenetic tree. The method infers the probability that such feature was present in the Last Common Ancestor (LCA) of a given lineage. Events like horizontal gene transfer, gene deletion, and de novo gene formation add noise to vertical heritage patterns. The 'groot' function assesses the presence and absence of the orthologs in the extant species of the phylogenetic tree in order to build a probability distribution, which is used to identify vertical heritage patterns.
+
+The 'penalty' argument weighs gene gain and loss; penalty=1 indicates equal probability; penalty > 1 indicates higher probability of gene loss while penalty < 1 indicates higher probability of gene gain (penalty value should be greater than zero; default penalty=2). 
+
+After the probability distribution is built for a given lineage, then a rooting algorithm is used to search the LCA that provides the best vertical heritage pattern (default method='BR'). The rooting algorithms finds the optimum point that splits the probability distribution into two components: one enriched with the queried feature (supporting vertical heritage in the lineage) and another with low evidence in favour of the feature's presence. The cutoff sets the tolerance for the discrimination between the two components (default cutoff=0.3). Based on the optimization settings, then the 'groot' function computes the inconsistency score 'Dscore', which assesses the significance of the inferred root against a null distribution derived by permutation analysis.
+
 }
 
 \value{

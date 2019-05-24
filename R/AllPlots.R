@@ -138,8 +138,8 @@ groot.plot<-function(ogr, whichOG, fname="gproot",  width=4.5, height=6.5, cex.l
   if(length(nsegs)==0)nsegs=0
   
   #---set x,y positions
-  # yy <- node.height(x, clado.style = TRUE)
-  yy <- .node.height(x)
+  yy <- node.height(x, clado.style = TRUE)
+  # yy <- .node.height(x)
   xx <- node.depth(x, method = 1)-1
   xx <- max(xx) - xx
   Ntip <- length(x$tip.label)
@@ -200,20 +200,20 @@ groot.plot<-function(ogr, whichOG, fname="gproot",  width=4.5, height=6.5, cex.l
          pch=c(21,21,23,NA,NA,NA,NA), cex=0.6, pt.cex=0.8, inset = 0.05, bty="n")  
 }
 # fix a bug (or change) in "node.height" from ape
-.node.height <- function(phy){
-  n <- length(phy$tip.label)
-  m <- phy$Nnode
-  N <- dim(phy$edge)[1]
-  phy <- reorder(phy)
-  yy <- numeric(n + m)
-  e2 <- phy$edge[, 2]
-  yy[e2[e2 <= n]] <- 1:n
-  phy <- reorder(phy, order = "postorder")
-  e1 <- phy$edge[, 1]
-  e2 <- phy$edge[, 2]
-  .C(node_height_clado, as.integer(n), as.integer(e1), 
-     as.integer(e2), as.integer(N), double(n + m), as.double(yy))[[6]]
-}
+# .node.height <- function(phy){
+#   n <- length(phy$tip.label)
+#   m <- phy$Nnode
+#   N <- dim(phy$edge)[1]
+#   phy <- reorder(phy)
+#   yy <- numeric(n + m)
+#   e2 <- phy$edge[, 2]
+#   yy[e2[e2 <= n]] <- 1:n
+#   phy <- reorder(phy, order = "postorder")
+#   e1 <- phy$edge[, 1]
+#   e2 <- phy$edge[, 2]
+#   .C(node_height_clado, as.integer(n), as.integer(e1), 
+#      as.integer(e2), as.integer(N), double(n + m), as.double(yy))[[6]]
+# }
 
 ##################################################
 ### Custom (internal) plot.lcas fuction
@@ -221,8 +221,8 @@ groot.plot<-function(ogr, whichOG, fname="gproot",  width=4.5, height=6.5, cex.l
 .plot.lcas<-function(x, pargs, lcas, refsp, refspname){
 
   #---set x,y positions
-  # yy <- node.height(x, clado.style = TRUE)
-  yy <- .node.height(x)
+  yy <- node.height(x, clado.style = TRUE)
+  # yy <- .node.height(x)
   xx <- node.depth(x, method = 1)-1
   xx <- max(xx) - xx
   Ntip <- length(x$tip.label)

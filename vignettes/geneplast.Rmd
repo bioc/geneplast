@@ -115,9 +115,11 @@ groot.plot(ogr,plot.lcas = TRUE)
 
 This example shows how to assess all *OGs* annotated for *H. sapiens*.
 
-1 - Load orthogy data from the **geneplast.data.string.v91** package (*currently available under request*).
+1 - Load orthogy data from the **geneplast.data.string.v91** package.
 
 ```{r, eval=FALSE}
+# source("https://bioconductor.org/biocLite.R")
+# biocLite("geneplast.data.string.v91")
 library(geneplast.data.string.v91)
 data(gpdata_string_v91)
 ```

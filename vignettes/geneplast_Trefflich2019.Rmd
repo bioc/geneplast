@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Context
 
-@Fletcher2013 reconstructed regulons for 809 transcription factors (TFs) using microarray transcriptomic data from the METABRIC breast cancer cohort [@Curtis2012]. **Our goal here is to assess the evolutionary root of the regulons reconstructed by @Fletcher2013** using the *geneplast* package. This script reproduces the main observations described in @Trefflich2019, which proposed a framework to explore the evolutiory roots of regulons.
+@Fletcher2013 reconstructed regulons for 809 transcription factors (TFs) using microarray transcriptomic data from the METABRIC breast cancer cohort [@Curtis2012]. **Our goal here is to assess the evolutionary root of the regulons reconstructed by @Fletcher2013** using the *geneplast* package. This script reproduces the main observations described in @Trefflich2019, which proposed a framework to explore the evolutionary roots of regulons.
 
 # Package installation and data sets
 
@@ -33,9 +33,9 @@ library(ggplot2)
 library(ggpubr)
 ```
 
-# Evolutionary rooting inference
+# Inferring evolutionary roots
 
-This analysis will determine the evolutionary root of a gene based on the distribution of its orthologs in a given species tree. We will need two data objects, `cogdata` and `phyloTree`, loaded with the `gpdata_string_v91` call. The `cogdata` is a `data.frame` object with orthologous groups (OGs) predicted for 121 eukaryotic species, while the `phyloTree` is a phylogenetic tree object of class `phylo`. The `groot.preprocess` function checks the input data and builds an object of class `OGR`, which is used in the subsequent steps of the analysis pipeline.
+This analysis will determine the evolutionary root of a gene based on the distribution of its orthologs in a given species tree. We will need two data objects, `cogdata` and `phyloTree`, both loaded with the `gpdata_string_v91` call. The `cogdata` is a `data.frame` object listing orthologous groups (OGs) predicted for 121 eukaryotic species, while the `phyloTree` is a phylogenetic tree object of class `phylo`. The `groot.preprocess` function will check the input data and build an object of class `OGR`, which will be used in the subsequent steps of the analysis pipeline.
 
 ```{r eval=FALSE, message=FALSE, warning=FALSE}
 #-- Load orthology data from the 'geneplast.data.string.v91' package
@@ -45,16 +45,16 @@ data(gpdata_string_v91)
 ogr <- groot.preprocess(cogdata=cogdata, phyloTree=phyloTree, spid="9606")
 ```
 
-The `groot` function addresses the problem of finding the evolutionary root of a feature in an phylogenetic tree. The method infers the probability that such feature was present in the Last Common Ancestor (LCA) of a given lineage. The `groot` function assesses the presence and absence of the orthologs in the extant species of the phylogenetic tree in order to build a probability distribution, which is used to identify vertical heritage patterns. The `spid=9606` parameter sets *Homo sapiens* as the reference species, which defines the ancestral lineage assessed in the query (*each ortholog of the reference species will be rooted in an ancestor of the reference species*).
+The `groot` function addresses the problem of finding the evolutionary root of a feature in an phylogenetic tree. The method infers the probability that such feature was present in the Last Common Ancestor (LCA) of a given lineage. The `groot` function assesses the presence and absence of the orthologs in the extant species of the phylogenetic tree in order to build a probability distribution, which is used to identify vertical heritage patterns. The `spid=9606` parameter sets *Homo sapiens* as the reference species, which defines the ancestral lineage assessed in the query (*i.e. each ortholog of the reference species will be rooted in an ancestor of the reference species*).
 
 ```{r eval=FALSE, message=FALSE, warning=FALSE}
 #-- Run the 'groot' function and infer the evolutionary roots
 ogr <- groot(ogr, nPermutations=1000, verbose=TRUE)
 ```
 
-# Root-to-gene mapping for regulons
+# Mapping root-to-gene annotation
 
-In this section we will map the inferred evolutiory roots (available in the `ogr` object) to genes annotated in the regulons reconstructed by @Fletcher2013 (available in the `rtni1st` object). For a summary of the regulons in the `rtni1st` object we recommend using the `tni.regulon.summary` function, which shows that there are 809 regulatory elements (TFs) and 14131 targets.
+In this section we will map the inferred evolutionary roots (available in the `ogr` object) to genes annotated in the regulons reconstructed by @Fletcher2013 (available in the `rtni1st` object). For a summary of the regulons in the `rtni1st` object we recommend using the `tni.regulon.summary` function, which shows that there are 809 regulatory elements (TFs) and 14131 targets.
 
 ```{r eval=FALSE, message=FALSE, warning=FALSE}
 #-- Load regulons
@@ -113,7 +113,7 @@ table(roots_df$TF_Targets)
 
 # Comparing regulators and targets
 
-A transcriptional regulatory network (TRN) is formed by regulators (TFs) and target genes. The `roots_df` data frame lists the evolutionary roots inferred for each TRN element. The evolutionary roots are enumerated, from the most recent to the most ancestral node of the phylogenetic tree, i.e, `root 1`, `root 2`, ..., `root n` (please refer to @Trefflich2019 for additional details).
+A transcriptional regulatory network (TRN) is formed by regulators (TFs) and target genes. The `roots_df` data frame lists the evolutionary roots inferred for each TRN element, including whether the TRN element is annotated as TF or as a target.
 
 ```{r eval=FALSE}
 head(roots_df)
@@ -143,7 +143,9 @@ tail(roots_df)
 ## 14097    PANX3 116337   13    Targets
 ```
 
-Here we will compare the distribution of the evolutionary roots inferred for TFs and target genes using the Wilcoxon-Mann-Whitney test, and then generate violin plots.
+For example, *CEBPG* gene is placed at root 19 while *PANX3* gene is placed at root 13. As the evolutionary roots are enumerated from the most recent to the most ancestral node of the phylogenetic tree, this indicates that the evolutionary root inferred for *CEBPG* is more ancestral than the evolutionary root inferred for *PANX3* (please note that the aim of the analysis is to find the root of the orthologs of the reference species, therefore the root enumeration is related to the ancestral lineage of the reference species; for details of the phylogenetic tree, see **Figure 4** of Geneplast's vignette).
+
+Here we will compare the distribution of the evolutionary roots inferred for TFs and target genes using the Wilcoxon-Mann-Whitney test, and then generate violin plots (please refer to @Trefflich2019 for additional details).
 
 ```{r eval=FALSE}
 wilcox.test(Root ~ TF_Targets, data=roots_df)

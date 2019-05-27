@@ -100,6 +100,7 @@ roots_df <- roots_df[complete.cases(roots_df),]
 
 #-- Remove genes rooted at the base of the phylogenetic tree
 roots_df <- roots_df[roots_df$Root<max(roots_df$Root),]
+rownames(roots_df) <- 1:nrow(roots_df)
 
 #-- Check TF and target counts
 table(roots_df$TF_Targets)
@@ -121,12 +122,12 @@ head(roots_df)
 
 ```{r eval=FALSE}
 ##     SYMBOL ENTREZ Root TF_Targets
-## 10   CEBPG   1054   19        TFs
-## 11   NR4A2   4929   17        TFs
-## 14     EN1   2019   17        TFs
-## 15    TP53   7157   20        TFs
-## 16 GATAD2A  54815   19        TFs
-## 17     DR1   1810   23        TFs
+## 1   CEBPG   1054   19        TFs
+## 2   NR4A2   4929   17        TFs
+## 3     EN1   2019   17        TFs
+## 4    TP53   7157   20        TFs
+## 5 GATAD2A  54815   19        TFs
+## 6     DR1   1810   23        TFs
 ```
 
 ```{r eval=FALSE}
@@ -135,15 +136,15 @@ tail(roots_df)
 
 ```{r eval=FALSE}
 ##         SYMBOL ENTREZ Root TF_Targets
-## 14087      F11   2160   19    Targets
-## 14088   KCNK18 338567   24    Targets
-## 14089  TMEM220 388335   14    Targets
-## 14090 C1orf170  84808    7    Targets
-## 14095 C16orf96 342346    6    Targets
-## 14097    PANX3 116337   13    Targets
+## 6610      F11   2160   19    Targets
+## 6611   KCNK18 338567   24    Targets
+## 6612  TMEM220 388335   14    Targets
+## 6613 C1orf170  84808    7    Targets
+## 6614 C16orf96 342346    6    Targets
+## 6615    PANX3 116337   13    Targets
 ```
 
-For example, *CEBPG* gene is placed at root 19 while *PANX3* gene is placed at root 13. As the evolutionary roots are enumerated from the most recent to the most ancestral node of the phylogenetic tree, this indicates that the evolutionary root inferred for *CEBPG* is more ancestral than the evolutionary root inferred for *PANX3* (please note that the aim of the analysis is to find the root of the orthologs of the reference species, therefore the root enumeration is related to the ancestral lineage of the reference species; for details of the phylogenetic tree, see **Figure 4** of Geneplast's vignette).
+For example, *CEBPG* gene is placed at root 19 while *PANX3* gene is placed at root 13, indicating that the evolutionary root inferred for *CEBPG* is more ancestral than the evolutionary root inferred for *PANX3*. Please note that the evolutionary roots are enumerated from the most recent to the most ancestral node of the phylogenetic tree. Also, as the aim of the analysis is to find the root of the orthologs of the reference species, the root enumeration is related to the ancestral lineage of the reference species (for details of the phylogenetic tree, see **Figure 4** of the Geneplast's vignette).
 
 Here we will compare the distribution of the evolutionary roots inferred for TFs and target genes using the Wilcoxon-Mann-Whitney test, and then generate violin plots (please refer to @Trefflich2019 for additional details).
 
@@ -193,9 +194,92 @@ p + stat_compare_means(method="wilcox.test",
 dev.off()
 ```
 
-![title](geneplast_Trefflich2019.png)
+![title](geneplast_Trefflich2019_1.png)
 <b>Figure 1.</b> Distribution of the inferred evolutionary roots of TFs and target genes.
 
+Next we compute the root distance between a TF and its targets, and then generate a pie chart and a boxplot that reproduce the evolutionary scenarios discussed in @Trefflich2019.
+
+```{r eval=FALSE}
+
+#-- Get roots for TFs
+idx <- roots_df$TF_Targets=="TFs"
+tfroots <- roots_df$Root[idx]
+names(tfroots) <- roots_df$SYMBOL[idx]
+
+#-- Get roots for TF-target genes
+regulons <- tni.get(rtni1st, what = "regulons", idkey = "ENTREZ")[names(tfroots)]
+regroots <- lapply(regulons, function(reg){
+  roots_df$Root[roots_df$ENTREZ%in%reg]
+})
+tfroots <- tfroots[names(regroots)]
+
+#-- Compute root distance between a TF and its targets
+rootdist <- lapply(names(regroots), function(reg){
+  regroots[[reg]]-tfroots[reg]
+})
+names(rootdist) <- names(regroots)
+
+#-- Compute median root distance
+med_rootdist <- unlist(lapply(rootdist, median))
+
+#-- Plot a pie chart grouping regulons based on 
+#-- the median root distance
+cols = c("#1c92d5","grey","#98d1f2")
+n <- as.numeric(table(sign(med_rootdist)))
+pie(n, labels = paste(n,"regulons"), col = cols, border="white", cex=1.5)
+legend("bottomleft",
+       legend = c("TF-target genes rooted before the TF",
+                  "TF-target genes rooted with the TF", 
+                  "TF-target genes rooted after the TF"), 
+       fill = rev(cols), bty = "n")
+```
+
+```{r eval=FALSE, include=FALSE}
+cols = c("#1c92d5","grey","#98d1f2")
+n <- as.numeric(table(sign(med_rootdist)))
+pdf(file = "pie_regulon_roots.pdf")
+pie(n, labels = paste(n,"regulons"), col = cols, border="white", cex=1.5)
+legend("bottomleft",
+       legend = c("TF-target genes rooted before the TF",
+                  "TF-target genes rooted with the TF", 
+                  "TF-target genes rooted after the TF"), 
+       fill = rev(cols), bty = "n")
+dev.off()
+```
+![title](geneplast_Trefflich2019_2.png)
+<b>Figure 2.</b> Regulons grouped based on the median distance between a TF's root and its targets' roots.
+
+
+```{r eval=FALSE}
+#-- Plot a boxplot showing individual regulons
+
+#-- Sort regulons based on the calculated root distances
+med_rootdist <- sort(med_rootdist, decreasing = T)
+rootdist <- rootdist[names(med_rootdist)]
+regroots <- regroots[names(med_rootdist)]
+tfroots <- tfroots[names(med_rootdist)]
+
+#-- Generate the boxplot
+plot.new()
+par(usr=c(c(0,length(rootdist)),range(rootdist)))
+idx <- sign(med_rootdist)+2
+cols = c("#1c92d5","grey","#98d1f2")
+boxplot(rootdist, horizontal= F, outline=FALSE, las=2, axes=FALSE, add=T,
+        pars = list(boxwex = 0.6, boxcol=cols[idx], whiskcol=cols[idx]),
+        pch="|", lty=1, lwd=0.75,
+        col = cols[idx])
+abline(h=0, lmitre=5, col="#E69F00", lwd=3, lt=2)
+par(mgp=c(2,0.1,0))
+axis(side=1, cex.axis=1.2, padj=0.5, hadj=0.5, las=1, lwd=1.5, tcl= -0.2)
+par(mgp=c(2.5,1.2,0.5))
+axis(side=2, cex.axis=1.2, padj=0.5, hadj=0.5, las=1, lwd=1.5, tcl= -0.2)
+legend("topright",legend = c("TF-target genes rooted before the TF",
+                             "TF-target genes rooted with the TF", 
+                             "TF-target genes rooted after the TF"), fill = rev(cols), bty = "n")
+title(xlab = "Regulons sorted by the median distance to TF root", ylab = "Distance to TF root")
+```
+![title](geneplast_Trefflich2019_3.png)
+<b>Figure 3.</b> Regulons sorted by the median distance to TF root.
 
 # Session information
 

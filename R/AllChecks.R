@@ -95,7 +95,7 @@ geneplast.checks <- function(name, para) {
     if(is.null(para)){
       return(para)
     } else {
-      b1<-is.character(para)
+      b1<-is.character(para) || is.integer(para) || is.numeric(para)
       b2<-is.matrix(para) || is.data.frame(para)
       if(!b1 && !b2){
         stop("'sspids' should be a vector of characters or dataframe! \n",

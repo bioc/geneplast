@@ -13,34 +13,35 @@ gplast.preprocess<-function(cogdata, sspids=NULL, cogids=NULL, verbose=TRUE){
   cogids=geneplast.checks(name="cogids",para=cogids)
   #get sspids
   if(is.null(sspids)){
-    sspids<-unique(as.character(cogdata[,"ssp_id"]))
+    sspids<-unique(as.character(cogdata$ssp_id))
     sspids<-sspids[!is.na(sspids)]
     sspids<-sspids[sspids!='']
     sspids<-sort(sspids)
     sspids<-data.frame(ssp_id=sspids,stringsAsFactors=FALSE)
-    rownames(sspids)<-sspids[,"ssp_id"]
+    rownames(sspids)<-sspids$ssp_id
   } else {
-    if(any(!sspids[,"ssp_id"]%in%cogdata[,"ssp_id"])){
+    if(any(!sspids$ssp_id%in%cogdata$ssp_id)){
       stop("NOTE: 'sspids' not listed in 'cogdata'!")
     }
   }
   #get cogids
   if(is.null(cogids)){
-    cogids<-unique(as.character(cogdata[,3]))
+    cogids <- cogdata$cog_id[cogdata$ssp_id%in%sspids$ssp_id]
+    cogids<-unique(as.character(cogids))
     cogids<-cogids[!is.na(cogids)]
     cogids<-cogids[cogids!='']
     cogids<-sort(cogids)
     cogids<-data.frame(cogids=cogids,stringsAsFactors=FALSE)
-    rownames(cogids)<-cogids[,1]
+    rownames(cogids)<-cogids$cogids
   } else {
     if(any(!cogids[,1]%in%cogdata$cog_id)){
       stop("NOTE: 'cogids' not listed in 'cogdata'!")
     }
   }
   #remove non-usefull data and compute orthodist
-  cogdata<-cogdata[cogdata[,3]%in%cogids[,1],]
-  orthodist<-orthoCount(cogdata=cogdata,cogvec=cogids[,1],
-                        sspvec=sspids[,1],verbose)  
+  cogdata<-cogdata[cogdata$cog_id%in%cogids$cogids,]
+  orthodist<-orthoCount(cogdata=cogdata, cogvec=cogids$cogids,
+                        sspvec=sspids$ssp_id,verbose)
   object <- new("OGP",cogids=cogids,sspids=sspids,orthodist=orthodist)
   return(object)
   

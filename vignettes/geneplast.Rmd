@@ -16,7 +16,7 @@ vignette: >
 
 # Overview
 
-**Geneplast** is designed for evolutionary and plasticity analysis based on the distribuion of orthologous groups in a given species tree. It uses Shannon information theory to estimate the Evolutionary Plasticity Index (EPI) (@Dalmolin2011, @Castro2008).
+**Geneplast** is designed for evolutionary and plasticity analysis based on the distribuion of orthologous groups in a given species tree. It uses Shannon information theory to estimate the Evolutionary Plasticity Index (EPI) [@Dalmolin2011, @Castro2008].
 
 **Figure 1** shows a toy example to illustrate the analysis. The observed itens in **Figure 1a** are distributed evenly among the different species (i.e. high diversity), while **Figure 1b** shows the opposite case. The diversity is given by the normalized Shannon’s diversity and represents the distribution of orthologous and paralogous genes in a set of species. High diversity represents an homogeneous distribution among the evaluated species, while low diversity indicates that few species concentrate most of the observed orthologous genes.
 

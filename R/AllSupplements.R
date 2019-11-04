@@ -46,6 +46,7 @@ ogr2igraph <- function(ogr, cogdata, g, idkey="ENTREZ"){
   
   #--- transfer rooting information
   idx <- match(vids,cogSP[[mcol]])
+  g <- set_vertex_attr(g, name="COGID", value=cogSP$cog_id[idx])
   g <- set_vertex_attr(g, name="Root", value=cogSP$Root[idx])
   return(g)
   
@@ -110,15 +111,16 @@ ogr2tni <- function(ogr, cogdata, tni){
 ######################################################################
 #count protein number for each cog
 orthoCount<-function(cogdata,cogvec,sspvec,verbose){
-  if(verbose) pb <- txtProgressBar(style=3)
+  DT <- as.data.table(cogdata) 
   len<-length(cogvec)
+  cog_id <-NULL
+  if(verbose) pb <- txtProgressBar(style=3)
   orthotable<-sapply(1:len,function(i){
     if(verbose) setTxtProgressBar(pb, i/len)
-    dt<-cogdata[which(cogdata[,3]==cogvec[i]),]
-    res<-sapply(sspvec,function(sp){
-      sum(dt[,2]==sp)
+    dt<-DT[cog_id==cogvec[i]]
+    sapply(sspvec,function(sp){
+      sum(dt$ssp_id==sp)
     })
-    res
   })
   if(verbose) close(pb)
   rownames(orthotable)<-sspvec

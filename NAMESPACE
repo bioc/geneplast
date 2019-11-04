@@ -23,3 +23,4 @@ importFrom(graphics, legend, par, plot, plot.default, points, segments, strwidth
 importFrom(stats, aggregate, ecdf, p.adjust, pnorm, sd, uniroot, reorder)
 importFrom(utils, setTxtProgressBar, txtProgressBar)
 importFrom(igraph, vertex_attr, vertex_attr_names, set_vertex_attr)
+importFrom(data.table, as.data.table)

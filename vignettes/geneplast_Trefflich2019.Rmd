@@ -204,7 +204,7 @@ dev.off()
 ```
 
 ![title](geneplast_Trefflich2019_1.png)
-<b>Figure S1.</b> Distribution of the inferred evolutionary roots of TFs and target genes using regulons available from the `rtni1st` data object.
+<b>Figure S1.</b> Distribution of the inferred evolutionary roots of TFs and target genes using regulons available from the `rtni1st` data object. ****P-value = 1.6e-06 (Wilcoxon-Mann-Whitney test).
 
 Next we compute the root distance between a TF and its targets, and then generate a pie chart and a boxplot that reproduce the evolutionary scenarios discussed in @Trefflich2019.
 
@@ -235,7 +235,7 @@ regulonlist <- regulonlist[names(rootdist_med)]
 
 #-- Set regulon groups based on the median root distances
 regulon_grouplist <- -sign(rootdist_med)+2
-regulon_groupnames <- c("Before","With","After")
+regulon_groupnames <- c("group_a","group_b","group_c")
 regulon_groupcolors = c("#98d1f2","grey","#1c92d5")
 names(regulon_groupcolors) <- regulon_groupnames
 ```
@@ -247,9 +247,9 @@ names(regulon_groupcolors) <- regulon_groupnames
 n <- as.numeric(table(regulon_grouplist))
 pie(n, labels = paste(n,"regulons"), col = regulon_groupcolors, 
     border="white", cex=1.5, clockwise = TRUE, init.angle=0)
-labs <- c("TF-target genes rooted before the TF",
-          "TF-target genes rooted with the TF", 
-          "TF-target genes rooted after the TF")
+labs <- c("TF-target genes rooted before the TF (group-a)",
+          "TF-target genes rooted with the TF (group-b)", 
+          "TF-target genes rooted after the TF (group-c)")
 legend("bottomleft", fill = regulon_groupcolors, bty = "n", legend = labs)
 ```
 
@@ -368,7 +368,7 @@ dev.off()
 ```
 
 ![title](geneplast_Trefflich2019_4.png)
-<b>Figure S4.</b> Distribution of the inferred evolutionary roots of TFs and TcoFs.
+<b>Figure S4.</b> Distribution of the inferred evolutionary roots of TFs and TcoFs (ns = not significant).
 
 
 
@@ -443,7 +443,8 @@ dev.off()
 
 ## Exploring abundance, diversity and plasticity
 
-In this section we show how to calculate the OG's *abundance*, *diversity* and *plasticity*, and then map these three metrics to regulons (please, refer to @Castro2008 and @Dalmolin2011 for a detailed description). Briefly, the *abundance* metric represents the number of orthologs divided by the number of species annotated in a given OG; `abundance = 1` indicates an one-to-one relationship between the number orthologs and species, while `abundance > 1` indicates that the number of orthologs exceeds the number of species. A large abundance value suggests a large number of paralogs annotated in the OG. The *diversity* metric represents the distribution of orthologs and paralogs in the set of species annotated in a given OG; high diversity represents an homogeneous distribution, while low diversity indicates that few species concentrate most of the orthologous genes. Finally, the *plasticity* is the combination of *abundance* and *diversity* into a single metric. Low plasticity is observed in OGs of low abundance and high diversity (i.e. few orthologs distributed over many species), while high plasticity is observed in OGs of high abundance and low diversity (i.e. many orthologs concentrate on few species).
+In this section we show how to calculate the OG's *abundance*, *diversity* and *plasticity*, and then map these three metrics to regulons (please, refer to @Castro2008 and @Dalmolin2011 for a detailed description). Briefly, the *abundance* metric represents the number of orthologs divided by the number of species annotated in a given OG; `abundance = 1` indicates an one-to-one relationship between the number of orthologs and species, while `abundance > 1` indicates that the number of orthologs exceeds the number of species. A large abundance value suggests a large number of paralogs annotated in the OG. The *diversity* metric represents the distribution of orthologs and paralogs in a given species tree; high diversity represents an homogeneous distribution (e.g. one ortholog in each species), while low diversity indicates that the orthologous genes are concentrated on few species (e.g. in a single branch of the species tree). The *plasticity* is the combination of abundance and diversity into a single metric. Low plasticity is observed in OGs of low abundance and high diversity (e.g. few orthologs distributed over many species), while high plasticity is observed in OGs of high abundance and low diversity (e.g. many orthologs concentrated on few species).
+
 
 ```{r eval=FALSE, message=FALSE, warning=FALSE}
 #-- Compute OG's abundance, diversity and plasticity
@@ -484,25 +485,25 @@ stats_df$regulon_groups <- regulon_groupnames[stats_df$regulon_groups]
 ```{r eval=FALSE, include=FALSE}
 #-- Assess OG's abundance by regulon groups
 wilcox.test(Abundance ~ regulon_groups, data=stats_df,
-            subset = regulon_groups %in% c("Before","After"))
+            subset = regulon_groups %in% c("group_a","group_c"))
 ## Wilcoxon rank sum test with continuity correction
-## data:  Abundance by TRN_element
+## data:  Abundance by regulon_groups
 ## W = 7170, p-value = 0.1432
 ## alternative hypothesis: true location shift is not equal to 0
 
 #-- Assess OG's diversity by regulon groups
 wilcox.test(Diversity ~ regulon_groups, data=stats_df,
-            subset = regulon_groups %in% c("Before","After"))
+            subset = regulon_groups %in% c("group_a","group_c"))
 ## Wilcoxon rank sum test with continuity correction
-## data:  Diversity by TRN_element
+## data:  Diversity by regulon_groups
 ## W = 4419, p-value = 5.181e-05
 ## alternative hypothesis: true location shift is not equal to 0
 
 #-- Assess OG's plasticity by regulon groups
 wilcox.test(Plasticity ~ regulon_groups, data=stats_df,
-            subset = regulon_groups %in% c("Before","After"))
+            subset = regulon_groups %in% c("group_a","group_c"))
 ## Wilcoxon rank sum test with continuity correction
-## data:  Plasticity by TRN_element
+## data:  Plasticity by regulon_groups
 ## W = 7338, p-value = 0.07175
 ## alternative hypothesis: true location shift is not equal to 0
 ```
@@ -513,20 +514,20 @@ wilcox.test(Plasticity ~ regulon_groups, data=stats_df,
 p <- ggplot(stats_df, aes(x=regulon_groups, y=Abundance, fill=regulon_groups)) + 
   geom_boxplot(show.legend=F) +
   scale_y_continuous(limits = c(0,60)) +
-  scale_x_discrete(limits=c("Before","After")) +
-  scale_fill_manual(values=regulon_groupcolors[c("Before","After")]) +
+  scale_x_discrete(limits=c("group_a","group_c")) +
+  scale_fill_manual(values=regulon_groupcolors[c("group_a","group_c")]) +
   labs(x="Regulon groups", y="OG's abundance") +
   theme(panel.grid = element_blank()) +
   theme(text=element_text(size=20), axis.line.x=element_blank())
 p + stat_compare_means(method="wilcox.test",
-                       comparisons =list(c("Before","After")),
+                       comparisons =list(c("group_a","group_c")),
                        label = "p.signif")
 ```
 
 ```{r eval=FALSE, include=FALSE}
 pdf(file = "geneplast_Trefflich2019_5_abundance.pdf", width =  3.6, height = 5)
 p + stat_compare_means(method="wilcox.test",
-                       comparisons =list(c("Before","After")),
+                       comparisons =list(c("group_a","group_c")),
                        label = "p.signif")
 dev.off()
 ```
@@ -537,20 +538,20 @@ dev.off()
 p <- ggplot(stats_df, aes(x=regulon_groups, y=Diversity, fill=regulon_groups)) + 
   geom_boxplot(show.legend=F) +
   scale_y_continuous(limits = c(0.5,1)) +
-  scale_x_discrete(limits=c("Before","After")) +
-  scale_fill_manual(values=regulon_groupcolors[c("Before","After")]) +
+  scale_x_discrete(limits=c("group_a","group_c")) +
+  scale_fill_manual(values=regulon_groupcolors[c("group_a","group_c")]) +
   labs(x="Regulon groups", y="OG's diversity") +
   theme(panel.grid = element_blank()) +
   theme(text=element_text(size=20), axis.line.x=element_blank())
 p + stat_compare_means(method="wilcox.test",
-                       comparisons =list(c("Before","After")),
+                       comparisons =list(c("group_a","group_c")),
                        label = "p.signif")
 ```
 
 ```{r eval=FALSE, include=FALSE}
 pdf(file = "geneplast_Trefflich2019_5_diversity.pdf", width =  3.6, height = 5)
 p + stat_compare_means(method="wilcox.test",
-                       comparisons =list(c("Before","After")),
+                       comparisons =list(c("group_a","group_c")),
                        label = "p.signif")
 dev.off()
 ```
@@ -561,26 +562,28 @@ dev.off()
 p <- ggplot(stats_df, aes(x=regulon_groups, y=Plasticity, fill=regulon_groups)) + 
   geom_boxplot(show.legend=F) +
   scale_y_continuous(limits = c(0,1)) +
-  scale_x_discrete(limits=c("Before","After")) +
-  scale_fill_manual(values=regulon_groupcolors[c("Before","After")]) +
+  scale_x_discrete(limits=c("group_a","group_c")) +
+  scale_fill_manual(values=regulon_groupcolors[c("group_a","group_c")]) +
   labs(x="Regulon groups", y="OG's plasticity") +
   theme(panel.grid = element_blank()) +
   theme(text=element_text(size=20), axis.line.x=element_blank())
 p + stat_compare_means(method="wilcox.test",
-                       comparisons =list(c("Before","After")),
+                       comparisons =list(c("group_a","group_c")),
                        label = "p.signif")
 ```
 
 ```{r eval=FALSE, include=FALSE}
 pdf(file = "geneplast_Trefflich2019_5_plasticity.pdf", width =  3.6, height = 5)
 p + stat_compare_means(method="wilcox.test",
-                       comparisons =list(c("Before","After")),
+                       comparisons =list(c("group_a","group_c")),
                        label = "p.signif")
 dev.off()
 ```
 
 ![title](geneplast_Trefflich2019_5.png)
-<b>Figure S5.</b> OG's abundance (a), diversity (b) and plasticity (c) mapped to the regulon groups depicted in Figure S2.
+<b>Figure S5.</b>  OG’s abundance (a), diversity (b) and plasticity (c) mapped to regulons grouped based on the distance between the evolutionary roots of TFs and targets. ****P-value = 5.1e-5 (Wilcoxon-Mann-Whitney test); ns = not significant.
+
+The abundance mapped to regulons whose TF-target genes are rooted *before* the TF (Group-a) is the same from that mapped to regulons whose TF-target genes are rooted *after* the TF (Group-c) (**Figure S5a**), suggesting that the number of orthologs per species is similar between the two groups. In contrast, the OG’s diversity mapped to Group-a is higher comparing with Group-c (P-value = 5.1e-5; Wilcoxon-Mann-Whitney test) (**Figure S5b**). As diversity estimates the dispersion of the orthologous genes in the species tree, this suggests that regulons in Group-a have orthologs more evenly distributed, which is usually observed for OGs rooted at the base of the phylogenetic tree [@Castro2008]. We did not detect any difference between Group-a and Group-c using the plasticity scores mapped to regulons (**Figure S5c**).
 
 
 # Evolutionary analysis of regulons generated from normal breast tissue samples
@@ -659,7 +662,7 @@ dev.off()
 ```
 
 ![title](geneplast_Trefflich2019_6.png)
-<b>Figure S6.</b> Distribution of the inferred evolutionary roots of TFs and target genes using regulons available from the `rtniNormals` data object.
+<b>Figure S6.</b> Distribution of the inferred evolutionary roots of TFs and target genes using regulons available from the `rtniNormals` data object. **P-value = 0.001148 (Wilcoxon-Mann-Whitney test).
 
 
 # Session information

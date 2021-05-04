@@ -172,7 +172,7 @@ geneplast.checks <- function(name, para) {
     return(para)
   } 
   else if(name=="phyloTree"){
-    if(class(para)!="phylo")stop("'phyloTree' should be an object of class 'phylo'!")
+    if(!"phylo"%in%class(para))stop("'phyloTree' should be an object of class 'phylo'!")
   } 
   else if(name=="spid"){
     if(is.integer(para) || is.numeric(para) ) para<-as.character(para)

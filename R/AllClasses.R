@@ -25,7 +25,7 @@ setClass(
   "OGR",
   representation(
     cogids="data.frame",
-    tree="phylo",
+    tree="ANY",
     spbranches="data.frame",
     orthoroot="data.frame",
     orthoct="data.frame",
@@ -33,7 +33,7 @@ setClass(
   ),
   prototype=list(
     cogids=data.frame(),
-    tree=setClass("phylo"),
+    tree="ANY",
     spbranches=data.frame(),
     orthoct=data.frame(),
     orthoroot=data.frame(),

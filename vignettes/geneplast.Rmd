@@ -78,7 +78,8 @@ The rooting analysis starts with an `OGR` object by running the `groot.preproces
 
 1 - Create an object of class OGR.
 ```{r label='newOgr', eval=TRUE}
-ogr <- groot.preprocess(cogdata=cogdata, phyloTree=phyloTree, spid="9606", cogids=cogids, verbose=FALSE)
+ogr <- groot.preprocess(cogdata=cogdata, phyloTree=phyloTree, 
+                        spid="9606", cogids=cogids, verbose=FALSE)
 ```
 
 2 - Run the groot function.

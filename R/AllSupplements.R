@@ -470,9 +470,9 @@ tipOrder<-function(phyloTree){
   return(tporder)
 }
 rotatePhyloTree<-function(phyloTree,spid){
-  tip<-which(phyloTree$tip.label==spid)
+  tip <- which(phyloTree$tip.label==spid)
   lcas <- mrca(phyloTree)[,spid]
-  phyloTree$edge.length<-rep(1,241)
+  phyloTree$edge.length <- rep(1, nrow(phyloTree$edge))
   tgroup<-dist.nodes(phyloTree)[,tip]
   tgroup<-tgroup[lcas]
   names(tgroup)<-names(lcas)

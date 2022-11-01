@@ -1,7 +1,7 @@
 Package: geneplast
 Type: Package
 Title: Evolutionary and plasticity analysis of orthologous groups
-Version: 1.23.0
+Version: 1.24.0
 Author: Rodrigo Dalmolin, Mauro Castro
 Maintainer: Mauro Castro <mauro.a.castro@gmail.com>
 Depends: R (>= 4.0), methods

@@ -5,7 +5,7 @@
 ##OGP constructor
 gplast.preprocess<-function(cogdata, sspids=NULL, cogids=NULL, verbose=TRUE){
   
-  if(verbose)cat("-Preprocessing for input data...\n")
+  if(verbose)cat("-Preprocessing input data...\n")
   
   #---main checks
   cogdata=geneplast.checks(name="cogdata",para=cogdata)
@@ -32,15 +32,16 @@ gplast.preprocess<-function(cogdata, sspids=NULL, cogids=NULL, verbose=TRUE){
     cogids<-cogids[cogids!='']
     cogids<-sort(cogids)
     cogids<-data.frame(cogids=cogids,stringsAsFactors=FALSE)
-    rownames(cogids)<-cogids$cogids
+    rownames(cogids) <- cogids$cogids
   } else {
     if(any(!cogids[,1]%in%cogdata$cog_id)){
       stop("NOTE: 'cogids' not listed in 'cogdata'!")
     }
+    colnames(cogids)[1] <- "cog_id"
   }
   #remove non-usefull data and compute orthodist
-  cogdata<-cogdata[cogdata$cog_id%in%cogids$cogids,]
-  orthodist<-orthoCount(cogdata=cogdata, cogvec=cogids$cogids,
+  cogdata<-cogdata[cogdata$cog_id%in%cogids$cog_id,]
+  orthodist<-orthoCount(cogdata=cogdata, cogvec=cogids$cog_id,
                         sspvec=sspids$ssp_id,verbose)
   object <- new("OGP",cogids=cogids,sspids=sspids,orthodist=orthodist)
   return(object)
@@ -51,7 +52,7 @@ gplast.preprocess<-function(cogdata, sspids=NULL, cogids=NULL, verbose=TRUE){
 ##OGR constructor
 groot.preprocess<-function(cogdata, phyloTree, spid, cogids=NULL, verbose=TRUE){
   
-  if(verbose)cat("-Preprocessing for input data...\n")
+  if(verbose)cat("-Preprocessing input data...\n")
   
   #---main checks
   cogdata<-geneplast.checks(name="cogdata",para=cogdata)

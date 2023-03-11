@@ -1,56 +1,45 @@
 ---
-title: "Geneplast: evolutionary rooting and plasticity analysis of orthologous groups."
+title: "Geneplast: large-scale evolutionary analysis of orthologous groups."
 author: "Rodrigo JS Dalmolin, Sheyla Trefflich, Diego AA Morais, Mauro AA Castro."
 date: "`r BiocStyle::doc_date()`"
 package: "`r BiocStyle::pkg_ver('geneplast')`"
 bibliography: bibliography.bib
-abstract: <p>Geneplast is designed for evolutionary and plasticity analysis based on orthologous groups distribution in a given species tree. It uses Shannon information theory and orthologs abundance to estimate the Evolutionary Plasticity Index. Additionally, it implements the Bridge algorithm to determine the evolutionary root of a given gene based on its orthologs distribution</p>
+abstract: <p>Geneplast implements the Bridge algorithm to determine the evolutionary root of genes in a given species tree. It also assesses diversity and abundance of orthologous genes to estimate an evolutionary plasticity index.</p>
 output: 
   BiocStyle::html_document:
     css: custom.css
 vignette: >
-  %\VignetteIndexEntry{"Geneplast: evolutionary rooting and plasticity analysis."}
+  %\VignetteIndexEntry{"Geneplast: evolutionary analysis of orthologous groups."}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 # Overview
 
-**Geneplast** is designed for evolutionary and plasticity analysis based on the distribuion of orthologous groups in a given species tree. It uses Shannon information theory to estimate the Evolutionary Plasticity Index (EPI) [@Dalmolin2011, @Castro2008].
-
-**Figure 1** shows a toy example to illustrate the analysis. The observed itens in **Figure 1a** are distributed evenly among the different species (i.e. high diversity), while **Figure 1b** shows the opposite case. The diversity is given by the normalized Shannon’s diversity and represents the distribution of orthologous and paralogous genes in a set of species. High diversity represents an homogeneous distribution among the evaluated species, while low diversity indicates that few species concentrate most of the observed orthologous genes.
-
-The *EPI* characterizes the evolutionary history of a given orthologous group (OG). It accesses the distribution of orthologs and paralogs and is defined as,
-
-$$EPI=1-\frac{H\alpha}{\sqrt{D\alpha}}, (1)$$
-
-where *Dα* represents the OG abundance and *Hα* the OG diversity. Low values of *Dα* combined with high values for *Hα* indicates an orthologous group of low plasticity, that is, few OG members distributed over many species. It also indicates that the OG might have experienced few modifications (i.e. duplication and deletion episodes) during the evolution. Note that 0 ≤ *Hα* ≤ 1 and *Dα* ≥ 1. As a result, 0 ≤ *EPI* ≤ 1. For further information about the *EPI*, please see [@Dalmolin2011].
-
+*Geneplast* is designed for large-scale evolutionary analysis of orthologous groups, assessing the distribution of orthologous genes in a given species tree. **Figure 1** illustrates the distribution of two hypothetical orthologous groups in 13 species. Diversity (*Hα*) and abundance (*Dα*) are useful metrics to describe the distribution of orthologous genes in a species tree. *Geneplast* calculates *Hα* assessing the normalized Shannon’s diversity [@Castro2008]. High *Hα* represents an homogeneous distribution (**Figure 1a**), while low *Hα* indicates that few species concentrate most of the observed orthologous genes (**Figure 1b**). The abundance *Dα* is given by the number of orthologous genes divided by the number of species in the tree. *Geneplast* uses *Hα* and *Dα* to calculate an evolutionary plasticity index (*EPI*) as defined by @Dalmolin2011.
 
 ![title](Fig1.png)
-<b>Figure 1.</b> *Toy examples showing the distribution of orthologous and paralogous genes in a given species tree*. (**a**) OG of low abundance *Dα*, high diversity (*Hα*) and consequently low plasticity (*PI*). In this hypothetical case, the OG comprises orthologous genes observed in all species, without apparent deletion or duplication episodes. (**b**) in this example the OG is observed in many species, but not all, with many paralogs in some of them. Green numbers represents the number of orthologous genes in each species.
+<b>Figure 1.</b> *Toy examples illustrating the distribution of orthologous genes in a given species tree*. (**a**) OG of low abundance (*Dα*) and high diversity (*Hα*). This hypothetical OG comprises orthologous genes observed in all species of the tree, without apparent deletions or duplications. (**b**) Example of an OG observed in many species, but not all. Numbers in parentheses represent the orthologous genes in each species.
 
-**geneplast** also implements a new algorithm called *Bridge* in order to interrogate the evolutionary root of a given gene based on the distribution of its orthologs. The *Bridge* algorithm assesses the probability that an ortholog of a given gene is present in each last common ancestor (LCA) of a given species (in a given species tree). As a result, this approach infers the evolutionary root representing the gene emergence. The method is designed to deal with large scale queries in order to interrogate, for example, all genes annotated in a network (please refer to [@Castro2008] for a case study illustrating the advantages of using this approach).
+In order to interrogate the evolutionary root of a given gene, *Geneplast* implements a new algorithm called *Bridge*, which assesses the probability that an ortholog is present in each Last Common Ancestor (LCA) of a species in a given species tree. The method is designed to deal with large-scale queries in order to interrogate, for example, all genes annotated in a network (please refer to @Castro2008 for additional examples).
 
-To illustrate the rooting inference consider the evolutionary scenarios presented in **Figure 2** for the same hypothetical OGs. These OGs comprise a number of orthologous genes distributed among 13 species, and the pattern of presence or absence is indicated by green and grey colours, respectively. Observe that at least one ortholog is present in all extant species in **Figure 2a**. To explain this common genetic trait, one possible evolutionary scenario could assume that the ortholog was present in the LCA of all species and was genetically transmitted up to the descendants. For this case, the evolutionary root might be placed at the bottom of the species tree (i.e. node *g*). The same reasoning can be done in **Figure 2b**, but with
-the evolutionary root placed at node d. The **geneplast** rooting pipeline is designed to infer the most consistent rooting scenario for the observed orthologs in a given species tree. The pipeline provides a consistency score called *Dscore* which estimates the stability of the inferred root, as well as an associated empirical *p-value* computed by permutation analysis.
-
+To illustrate the rooting inference consider the evolutionary scenarios presented in **Figure 2** for the same hypothetical OGs from **Figure 1**. These OGs comprise a number of orthologous genes distributed among 13 species, and the pattern of presence or absence is indicated by green and grey colours, respectively. Observe that in **Figure 2a** at least one ortholog is present in all extant species. To explain this common genetic trait, a possible evolutionary scenario could assume that the ortholog was present in the LCA of all extant species and was genetically transmitted up to the descendants. For this scenario, the evolutionary root might be placed at the bottom of the species tree (i.e. node *j*). A similar interpretation could be done for OG in **Figure 2b**, but with the evolutionary root placed at node *f*. The *Bridge* algorithm infers the most consistent rooting scenario for the observed orthologs in a given species tree, computing a consistency score called *Dscore* and an associated empirical *p-value*. The *Dscore* is an estimate of the stability of the inferred roots and the empirical *p-value* is computed by permutation analysis.
 
 ![title](Fig2.png)
-<b>Figure 2.</b> *Possible evolutionary rooting scenarios for the same toy examples depitected in Figure 1*. (**a, b**) Red circles indicate the evolutionary roots that best explain the observed orthologs in this species tree.
-
+<b>Figure 2.</b> *Evolutionary rooting scenarios for the same toy examples depicted in Figure 1*. (**a, b**) Red circles indicate the evolutionary roots that best explain the observed orthologs in the species tree.
 
 # Quick start
 
-The orthology data required to run **geneplast** is available in the gpdata.gs dataset. This dataset includes four objects containing information about Clusters of Orthologous Groups derived from the **STRING database**, release 9.1. **geneplast** can also be used with other sources of orthology information, provided that the input is set according to the gpdata.gs data structure (*note: in order to reduce the processing time this example uses a subset of the STRING database*).
+We will use the `gpdata.gs` dataset available from the *Geneplast* package to demonstrate the analysis workflow. This dataset includes four objects containing orthology annotation derived from the *STRING database*, release 9.1. The `gpdata.gs` dataset is to be used for demonstration purposes only as it represents a subset of the STRING database. *Geneplast* can use other sources of orthology information, provided that the input data is set according to the `gpdata.gs` dataset.
 
 ```{r}
 library(geneplast)
 data(gpdata.gs)
 ```
 
-## Evolutionary plasticity inference
-The first step is to create an OGP object by running the `gplast.preprocess` function. This example uses 121 eukaryotic species from the *STRING* database and all OGs mapped to the genome stabilty gene network [@Castro2008]. Next, the `gplast` function perform the plasticity analysis and the `gplast.get` returns the results:
+## Evolutionary diversity and abundance
+
+Next we will calculate diversity and abundance of orthologous groups using the `gplast` workflow. In the first step we will create an `OGP` object using the `gplast.preprocess` function, which will check the consistency of the input data. Then we will use the `gplast` function to perform diversity and abundance analysis, estimating the evolutionary plasticity index as defined by @Dalmolin2011. This example will assess orthology annotation available from the `gpdata.gs` dataset for 121 eukaryotic species.
 
 1 - Create an object of class `OGP`.
 ```{r label='newOgp', eval=TRUE}
@@ -64,59 +53,56 @@ ogp <- gplast(ogp, verbose=FALSE)
 
 3 - Get results.
 ```{r label='gplastRes', eval=TRUE}
-res <- gplast.get(ogp,what="results")
+res <- gplast.get(ogp, what="results")
 head(res)
 ```
 
-The results are returned in a 3-column `data.frame` with OG ids (cogids) identified in `row.names`. Columns are named as *abundance*, *diversity*, and *plasticity*.
+## Evolutionary rooting
 
-The metric *abundance* simply indicates the ratio of orthologs and paralogs by species. For example, KOG0011 cromprises 201 genes distributed in 116 eukaryotic species, with a resulting abundance of 1.7328. Abundance of 1 indicates an one-to-one orthology relationship, while high abundance denotes many duplication episodes on the OG’s evolutionary history. Diversity is obtained applying normalized Shannon entropy on orthologous distribution and Plasticity is obtained by *EPI* index, as described equation (1).
+The rooting analysis starts by running the `groot.preprocess` function, which will check the consistency of the input data. The user should provide **1**) a `cogdata` object, **2**) a `phyloTree` object, and **3**) set a reference species for which the evolutionary root of its genes will be inferred. Next, the `groot` function will perform the rooting analysis. The results are then retrieved by `groot.get` function. The pipeline returns the inferred root of each OG evaluated by the *Bridge* algorithm, including the *Dscore* and associated empirical *p-value*. Additionally, the `groot.plot` function allows the visualization of the inferred roots (e.g. **Figure 3**) and the LCAs of the reference species (**Figure 4**).
 
-## Evolutionary rooting inference
-
-The rooting analysis starts with an `OGR` object by running the `groot.preprocess` function. This example uses all *OGs* mapped to the genome stability gene network using *H. sapiens* as reference species [@Castro2008] and is set to perform 100 permutations for demonstration purposes (for a full analysis, please set `Permutations`≥1000). Next, the `groot` function performs the rooting analysis and the results are retrieved by `groot.get`, which returns a `data.frame` listing the root of each OG evaluated by the `groot` method. The pipeline also returns the inconsistency score, which estimates the stability of the rooting analysis, as well as the associated empirical *p-value*. Additionally, the `groot.plot` function allows the visualization of the inferred root for a given OG (e.g. **Figure 3**) and the LCAs for the reference species (**Figure 4**).
-
-1 - Create an object of class OGR.
+1 - Create an object of class `OGR`.
 ```{r label='newOgr', eval=TRUE}
-ogr <- groot.preprocess(cogdata=cogdata, phyloTree=phyloTree, 
-                        spid="9606", cogids=cogids, verbose=FALSE)
+ogr <- groot.preprocess(cogdata=cogdata, phyloTree=phyloTree, spid="9606", verbose=FALSE)
 ```
 
-2 - Run the groot function.
+2 - Run the `groot` function.
 ```{r label='grootTest', eval=TRUE}
 set.seed(1)
 ogr <- groot(ogr, nPermutations=100, verbose=FALSE)
+# Note: nPermutations is set to 100 for demonstration purposes; please set nPermutations=1000
 ```
 
 3 - Get results.
 ```{r label='grootRes1', eval=TRUE}
-res <- groot.get(ogr,what="results")
+res <- groot.get(ogr, what="results")
 head(res)
 ```
 
-4 - Check the inferred root of a given OG
+4 - Check the inferred root of a given OG.
 ```{r label='grootRes2', eval=TRUE}
-groot.plot(ogr,whichOG="NOG40170")
+groot.plot(ogr, whichOG="NOG40170")
 ```
 
-5 - Visualization of the LCAs for the reference species in the analysis (i.e. H. sapiens)
+5 - Visualize the LCAs of the reference species in the analysis.
 ```{r label='rootRes', eval=TRUE}
-groot.plot(ogr,plot.lcas = TRUE)
+groot.plot(ogr, plot.lcas = TRUE)
 ```
 
 ![title](Fig3.png)
 <b>Figure 3.</b> *Inferred evolutionary rooting scenario for NOG40170*. Monophyletic groups are ordered to show all branches of the tree below the queried species in the analysis.
 
 ![title](Fig4.png)
-<b>Figure 4.</b> *Visualization of the LCAs for the reference species in the analysis*.
+<b>Figure 4.</b> *LCAs of the reference species in the analysis*.
 
 # Case studies
 
 ## High-throughput rooting inference
 
-This example shows how to assess all *OGs* annotated for *H. sapiens*.
+This example shows how to assess all OGs annotated for *H. sapiens* in the
+`r BiocStyle::Biocpkg("geneplast.data.string.v91")` package.
 
-1 - Load orthogy data from the **geneplast.data.string.v91** package.
+1 - Load orthogy data from the *geneplast.data.string.v91* package.
 
 ```{r, eval=FALSE}
 # source("https://bioconductor.org/biocLite.R")
@@ -125,25 +111,25 @@ library(geneplast.data.string.v91)
 data(gpdata_string_v91)
 ```
 
-2 - Create an object of class 'OGR' for a reference 'spid'.
+2 - Create an object of class `OGR` for a reference `spid`.
 
 ```{r, eval=FALSE}
 ogr <- groot.preprocess(cogdata=cogdata, phyloTree=phyloTree, spid="9606")
 ```
 
 3 - Run the `groot` function and infer the evolutionary roots. 
-*Note: this step should take a long processing time due to the large number of OGs in the input data (also, `nPermutations` argument is set to 100 for demonstration purpose only).*
+*Note: this step may take a long processing time due to the large number of OGs in the input data (`nPermutations` argument is set to 100 for demonstration purpose only).*
 
 ```{r, eval=FALSE}
 ogr <- groot(ogr, nPermutations=100, verbose=TRUE)
 ```
 
-## Map rooting information on PPI networks
+## Map rooting annotation to PPI networks
 
-This example aims to show the evolutionary root of a protein-protein interaction (PPI) network, mapping the appearance of each gene in a given species tree. The next steps show how to tranfer evolutionary rooting information from **geneplast** to a graph model.
-*Note: to make this work the gene annotation available from the input PPI network needs to match the annotation available from the geneplast data (in this case, ENTREZ gene IDs are used to match the datasets).*
+This example aims to show the evolutionary roots of a protein-protein interaction (PPI) network. The next steps show how to map evolutionary rooting annotation from *Geneplast* to a graph model. 
+*Note: Gene annotation from the input PPI network must match the gene annotation available from the orthology data; in this example, ENTREZ IDs are used to match the datasets.*
 
-1 - Load a PPI network and required packages. The `igraph` object called 'ppi.gs' provides PPI information for apoptosis and genome-stability genes [@Castro2008].
+1 - Load a PPI network and all packages required in this case study. The `ppi.gs` object provides PPI information from apoptosis and genome-stability genes [@Castro2008]. The `ppi.gs` is an object of class `igraph` and it will be used to set graph attributes following `igraph` syntax rules. For detais on how to handle `igraph` objects please see `r BiocStyle::CRANpkg("igraph")` and `r BiocStyle::Biocpkg("RedeR")` documentation.
 
 ```{r, eval=FALSE}
 library(RedeR)
@@ -152,21 +138,23 @@ library(RColorBrewer)
 data(ppi.gs)
 ```
 
-2 - Map rooting information on the `igraph` object.
+2 - Map rooting annotation to the `igraph` object.
 
 ```{r, eval=FALSE}
 g <- ogr2igraph(ogr, cogdata, ppi.gs, idkey = "ENTREZ")
 ```
 
-3 - Adjust colors for rooting information.
+3 - Set colors for rooting annotations.
 
 ```{r, eval=FALSE}
 pal <- brewer.pal(9, "RdYlBu")
-color_col <- colorRampPalette(pal)(25) #set a color for each root!
-g <- att.setv(g=g, from="Root", to="nodeColor", cols=color_col, na.col = "grey80", breaks = seq(1,25))
+color_col <- colorRampPalette(pal)(25)
+g <- att.setv(g=g, from="Root", to="nodeColor", 
+              cols=color_col, na.col="grey80", 
+              breaks=seq(1,25))
 ```
 
-4 - Aesthetic adjusts for some graph attributes.
+4 - Adjust some `igraph` aesthetic attributes.
 
 ```{r, eval=FALSE}
 g <- att.setv(g = g, from = "SYMBOL", to = "nodeAlias")
@@ -174,41 +162,39 @@ E(g)$edgeColor <- "grey80"
 V(g)$nodeLineColor <- "grey80"
 ```
 
-5 - Send the `igraph` object to **RedeR** interface.
+5 - Send the `igraph` object to the `r BiocStyle::Biocpkg("RedeR")` application.
 
 ```{r, eval=FALSE}
 rdp <- RedPort()
 calld(rdp)
 resetd(rdp)
 addGraph(rdp, g)
-addLegend.color(rdp, colvec=g$legNodeColor$scale, size=15, labvec=g$legNodeColor$legend, title="Roots represented in Fig4")
+addLegend.color(rdp, colvec=g$legNodeColor$scale, 
+                size=15, labvec=g$legNodeColor$legend, 
+                title="Roots represented in Fig4")
+relax(rdp)
 ```
 
-6 - Get apoptosis and genome-stability sub-networks.
-
-```{r, eval=FALSE}
-g1  <- induced_subgraph(g=g, V(g)$name[V(g)$Apoptosis==1])
-g2  <- induced_subgraph(g=g, V(g)$name[V(g)$GenomeStability==1])
-```
-
-7 - Group apoptosis and genome-stability genes into containers.
+6 - Group apoptosis and genome-stability genes into containers.
 
 ```{r, eval=FALSE}
 myTheme <- list(nestFontSize=25, zoom=80, isNest=TRUE, gscale=65, theme=2)
-addGraph(rdp, g1, gcoord=c(25, 50), theme = c(myTheme, nestAlias="Apoptosis"))
-addGraph(rdp, g2, gcoord=c(75, 50), theme = c(myTheme, nestAlias="Genome Stability"))
-relax(rdp, p1=50, p2=50, p3=50, p4=50, p5= 50, ps = TRUE)
+nestNodes(rdp, nodes=V(g)$name[V(g)$Apoptosis==1], 
+          theme=c(myTheme, nestAlias="Apoptosis"))
+nestNodes(rdp, nodes=V(g)$name[V(g)$GenomeStability==1], 
+          theme=c(myTheme, nestAlias="Genome Stability"))
+relax(rdp, p1=50, p2=50, p3=50, p4=50, p5= 50)
 ```
 
 ![title](Fig5.png)
 <b>Figure 5.</b> *Inferred evolutionary roots of a protein-protein interaction network*.
 
-## Map rooting information on regulatory networks
+## Map rooting annotation to regulatory networks
 
-This example aims to show the evolutionary root of regulons [@Fletcher2013]. The idea is to map the appearance of each regulon (and the corresponding target genes) in a species tree. The next steps show how to tranfer evolutionary rooting information from **geneplast** to a graph model.
-*Note: to make this work the gene annotation available from the input regulatory network needs to match the annotation available from the geneplast data (in this case, ENTREZ gene IDs are used to match the datasets).*
+This example aims to show the evolutionary roots of regulons [@Fletcher2013]. The next steps show how to map evolutionary rooting annotation from *Geneplast* to a graph model.
+*Note: Gene annotation from the input regulatory network must match the gene annotation available from the orthology data; in this example, ENTREZ IDs are used to match the datasets.*
 
-1 - Load a `TNI` class object and required packages. The `rtni1st` object provides regulons available from the **Fletcher2013b** data package computed from breast cancer data [@Fletcher2013].
+1 - Load a regulatory network and all packages required in this case study. The `rtni1st` object provides regulons available from the `r BiocStyle::Biocpkg("Fletcher2013b")` data package computed from breast cancer data [@Fletcher2013].
 
 ```{r, eval=FALSE}
 library(RTN)
@@ -219,28 +205,30 @@ library(RColorBrewer)
 data("rtni1st")
 ```
 
-2 - Extract two regulons from `rtni1st` into an `igraph` object.
+2 - Extract two regulons from the `rtni1st` object into an `igraph` object.
 
 ```{r, eval=FALSE}
 regs <- c("FOXM1","PTTG1")
-g <- tni.graph(rtni1st, gtype = "rmap", tfs = regs)
+g <- tni.graph(rtni1st, gtype = "rmap", regulatoryElements = regs)
 ```
 
-3 - Map rooting information on the `igraph` object.
+3 - Map rooting annotation to the `igraph` object.
 
 ```{r, eval=FALSE}
 g <- ogr2igraph(ogr, cogdata, g, idkey = "ENTREZ")
 ```
 
-4 - Adjust colors for rooting information.
+4 - Set colors for rooting annotations.
 
 ```{r, eval=FALSE}
 pal <- brewer.pal(9, "RdYlBu")
-color_col <- colorRampPalette(pal)(25) #set a color for each root!
-g <- att.setv(g=g, from="Root", to="nodeColor", cols=color_col, na.col = "grey80", breaks = seq(1,25))
+color_col <- colorRampPalette(pal)(25)
+g <- att.setv(g=g, from="Root", to="nodeColor", 
+              cols=color_col, na.col = "grey80", 
+              breaks = seq(1,25))
 ```
 
-5 - Aesthetic adjusts for some graph attributes.
+5 - Adjust some `igraph` aesthetic attributes.
 
 ```{r, eval=FALSE}
 idx <- V(g)$SYMBOL %in% regs
@@ -250,20 +238,25 @@ E(g)$edgeColor <- "grey80"
 V(g)$nodeLineColor <- "grey80"
 ```
 
-6 - Send the `igraph` object to **RedeR** interface.
+6 - Send the `igraph` object to the `r BiocStyle::Biocpkg("RedeR")` application.
 
 ```{r, eval=FALSE}
 rdp <- RedPort()
 calld(rdp)
 resetd(rdp)
-addGraph( rdp, g, layout=NULL)
-addLegend.color(rdp, colvec=g$legNodeColor$scale, size=15, labvec=g$legNodeColor$legend, title="Roots represented in Fig4")
-relax(rdp, 15, 100, 20, 50, 10, 100, 10, 2, ps=TRUE)
+addGraph(rdp, g, layout=NULL)
+addLegend.color(rdp, colvec=g$legNodeColor$scale, 
+                size=15, labvec=g$legNodeColor$legend, 
+                title="Roots represented in Fig4")
+relax(rdp, 15, 100, 20, 50, 10, 100, 10, 2)
 ```
 
 ![title](Fig6.png)
-<b>Figure 6.</b> *Inferred evolutionary roots of two regulators (FOXM1 and PTTG1) and the corresponding targets*.
+<b>Figure 6.</b> *Evolutionary roots of FOXM1 and PTTG1 regulons*.
 
+# Orthology data packages
+
+The `r BiocStyle::Biocpkg("geneplast.data")` package provides supporting data via `r BiocStyle::Biocpkg("AnnotationHub")` for the *Geneplast* evolutionary analyses. The `r BiocStyle::Biocpkg("geneplast.data")` package contains pre-processed data from different OG databases for use in the *Geneplast* package. In the current version, `r BiocStyle::Biocpkg("geneplast.data")` provides orthology information from STRING (https://string-db.org/), OMA Browser (https://omabrowser.org/), and OrthoDB (https://www.orthodb.org/).
 
 # Session information
 

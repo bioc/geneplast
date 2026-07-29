@@ -26,7 +26,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Please make sure to install all required packages. Installing and then loading the *geneplast.data.string.v91* and *Fletcher2013b* data packages will make available all data required for this case study.
 
-```{r eval=TRUE, message=FALSE, results='hide'}
+**Note**: The *Fletcher2013b* package was deprecated starting with Bioconductor 3.23 due to package size restrictions. To reproduce this vignette, please install the archived version from Bioconductor 3.21.
+
+```{r eval=FALSE, message=FALSE, results='hide'}
 #-- Call packages
 library(geneplast)
 library(geneplast.data.string.v91)
